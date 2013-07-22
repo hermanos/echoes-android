@@ -1,9 +1,9 @@
-package com.bootcamp.emailnev;
+package com.itnt.echoes;
 
 import org.apache.cordova.DroidGap;
 import android.os.Bundle;
 
-public class EmailnevActivity extends DroidGap {
+public class MainActivity extends DroidGap {
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
