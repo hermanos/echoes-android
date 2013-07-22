@@ -67,15 +67,31 @@ $(document).ready(function(){
 		$.mobile.changePage("#index"); 
 		window.plugins.tts.speak("index");
 	 });
-	$(document).on('swiperight','#index', function()
-	  		{ $.mobile.changePage("#compose"); 
-			window.plugins.tts.speak("compose");
-	 });
-	$(document).on('dblclick','#index', function()
-	  		{ $.mobile.changePage("#readmsg"); 
-			window.plugins.tts.speak("reading message");
-	 });
-	$(document).on('dblclick','#readmsg', function(){ 
+	$(document).on('swiperight','#index', function(){ 
+		$.mobile.changePage("#compose"); 
+		window.plugins.tts.speak("compose");
+	});
+	$(document).on('tap','#index', function(){ 
+//		$.mobile.changePage("#readmsg"); 
+		window.plugins.tts.speak("reading message");
+		
+		current_user_id = 1;
+		message_id = 4;
+        $.ajax({
+            type: "GET",
+            url: 'http://staging.echoesapp.com/messages/' + message_id + '.json',
+            dataType: 'json',
+            data: {},
+            success: function(response){
+            	window.plugins.tts.speak(response['content']);
+            },
+            error: function(error) {
+              alert(error.statusText);
+            }
+        });		
+		
+	});
+	$(document).on('doubletap','#readmsg', function(){ 
 		$.mobile.changePage("#index"); 
 		window.plugins.tts.speak("index");
 	 });
@@ -83,9 +99,28 @@ $(document).ready(function(){
 		$.mobile.changePage("#sent");
 		window.plugins.tts.speak("Sent");
 	 });
-	$(document).on('swiperight','#sent', function()
-	  		{ $.mobile.changePage("#index"); 
-			window.plugins.tts.speak("Sent");
+	$(document).on('swiperight','#sent', function(){ 
+		$.mobile.changePage("#index"); 
+		window.plugins.tts.speak("inbox");
+		
+		current_user_id = 1;
+        $.ajax({
+            type: "GET",
+            url: 'http://staging.echoesapp.com/messages.json?current_user=' + current_user_id,
+            dataType: 'json',
+            data: {},
+            success: function(response){
+              messages = '';
+              response.forEach(function(element, index, array) {
+                messages += '<p data-id="' + element['id'] + '">From: ' + element['from'] + '<br>To: ' + element['to'] + '<br>Subject: ' + element['subject'] + '</p>';
+              });
+              $('div#index .content').html(messages);
+            },
+            error: function(error) {
+              alert(error.statusText);
+            }
+        });		
+		
 	 });
 	$(document).on('swipeleft','#sent', function()
 	  		{ $.mobile.changePage("#archive"); 
