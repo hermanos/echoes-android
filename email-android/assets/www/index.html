@@ -13,7 +13,12 @@
 	href="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.css" />
 
 <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
-<script type="text/javascript" src="js/jquery.mobile-1.3.1.min.js"></script>
+<!-- <script type="text/javascript" src="js/jquery.mobile-1.3.1.min.js"></script> -->
+<!-- <script type="text/javascript" src="js/jquery.mobile-events.min.js"></script> -->
+<!-- <script type="text/javascript" src="js/jquery.event.move.js"></script>
+<script type="text/javascript" src="js/jquery.event.swipe.js"></script>
+ -->
+<script type="text/javascript" src="js/jquery.touchswipe.min.js"></script>
 <script type="text/javascript" src="js/cordova.js"></script>
 <script type="text/javascript" src="js/tts.js"></script>
 <script type="text/javascript" src="js/main.js"></script>
@@ -26,6 +31,12 @@
 
 <body onload="init();">
 
+<div style="height:2000px;background-color:brown;" id="events" data-xthreshold="200" data-ythreshold="200">
+test
+</div>
+
+
+<div style="display:none;">
 	<div data-role="page" id="index">
 		<div data-role="header" data-position="fixed" id="header"
 			data-theme="b">
@@ -165,6 +176,7 @@
 			<p>&nbsp;</p>
 		</div>
 	</div>
+</div>
 
 </body>
 </html>
