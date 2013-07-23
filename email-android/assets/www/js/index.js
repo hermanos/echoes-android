@@ -1,6 +1,6 @@
 function startupWin(result) {
     if (result == TTS.STARTED) {
-        window.plugins.tts.speak("ecoz");
+        window.plugins.tts.speak("echoes");
     }
 }
 function ChangeLanguageWin(result) {
@@ -10,6 +10,9 @@ function fail(result) {
     alert("TTS Startup failure = " + result);
 }
 
+function closeSplash(){
+	navigator.splashscreen.hide();
+}
 
 //0-send message, 1-compose, 2-inbox, 3-sent, 4-trash, 5-archive, 6-settings
 //21-read message
@@ -53,7 +56,7 @@ $(document).ready(function(){
 		  afterMenuSelect();
 	  },
 	  longTap:function(event, target) {
-		  refreshMessages('inbox');
+			  refreshMessages('inbox');
 	  },
 	  tap:function(event, target) {
 		  // detect language
@@ -73,11 +76,13 @@ $(document).ready(function(){
 //	            error: function(error) {
 ////	            	window.plugins.tts.speak('error: ' + error.statusText);
 //	            }
-//	        });				  
-		  window.plugins.tts.speak("From:" + inbox_messages[inbox_current_message].from)
-		  window.plugins.tts.speak("To:" + inbox_messages[inbox_current_message].to);
-		  window.plugins.tts.speak("Subject:" + inbox_messages[inbox_current_message].subject);
-		  window.plugins.tts.speak("Content:" + inbox_messages[inbox_current_message].content);
+//	        });		
+		  
+			  window.plugins.tts.speak("From:" + inbox_messages[inbox_current_message].from);
+			  window.plugins.tts.speak("To:" + inbox_messages[inbox_current_message].to);
+			  window.plugins.tts.speak("Subject:" + inbox_messages[inbox_current_message].subject);
+			  window.plugins.tts.speak("Content:" + inbox_messages[inbox_current_message].content);
+		  
 	  }
 	});
 	
