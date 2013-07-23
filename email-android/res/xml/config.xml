@@ -36,7 +36,7 @@
     <content src="index.html" />
 
     <preference name="loglevel" value="DEBUG" />
-    <preference name="splashscreen" value="@drawable/splash.jpg" />
+    <!--  <preference name="splashscreen" value="@drawable/splash.jpg" /> -->
     <preference name="show-splash-screen-spinner" value="true" />
     <preference name="auto-hide-splash-screen" value="true" />
     
@@ -107,5 +107,6 @@
     <!-- Deprecated plugins element. Remove in 3.0 -->
     <plugins>
         <plugin name="TTS" value="com.phonegap.plugins.speech.TTS"/>
+        <plugin name="SplashScreen" value="org.apache.cordova.SplashScreen"/>
     </plugins>
 </widget>
