@@ -14,13 +14,16 @@ function closeSplash(){
 	navigator.splashscreen.hide();
 }
 
-//0-send message, 1-compose, 2-inbox, 3-sent, 4-trash, 5-archive, 6-settings
-//21-read message
+//0-splash, 1-tutorial1, 2-tutorial2, 3-tutorial3, 4-add email, 5-sync
+//11-compose, 12-inbox, 13-sent, 14-trash, 15-archive, 16-settings
+//20-reply all, 21-reply, 22-read message, 23-forward 
 
-var currentMenu = 2;
-var menus = ["send message", "compose", "inbox", "sent", "trash", "archive", "settings"]
-menus[20] = 'refresh';
-menus[21] = 'read message';
+var currentMenu = 0;
+var menus = ["splash" ,"tutorial page 1" ,"tutorial page 2" ,"tutorial page 3" ,"add email" ,"syncronization"];
+menus[10]="send message";
+menus[11]= "compose"; menus[12]="inbox"; menus[13]="sent"; menus[14]="trash"; menus[15]="archive";menus[16]="settings";
+menus[19] = 'refresh';
+menus[22] = 'read message';
 var inbox_messages = [];
 var inbox_current_message = -1;
 
@@ -34,21 +37,38 @@ $(document).ready(function(){
 	$("#events").swipe({
 	  swipe:function(event, direction, distance, duration, fingerCount) {
 		  if (direction == 'left'){
-			  currentMenu += 1;
-			  if (currentMenu > 6) currentMenu = 6;
+			  if(currentMenu < 5){
+			  	currentMenu += 1;
+			  	if (currentMenu > 5) currentMenu = 5;
+			  }
+			  if(currentMenu> 10 && currentMenu < 16){
+				  currentMenu += 1;
+				  if (currentMenu > 16) currentMenu = 16; 
+			  }
+			  
 		  }
 
 		  if (direction == 'right'){
-			  currentMenu -= 1;
-			  if (currentMenu < 0) currentMenu = 0;
+			  if(currentMenu <6){
+			  	currentMenu -= 1;
+			  	if (currentMenu < 0) currentMenu = 0;
+		  	  }
+			  if(currentMenu> 10 && currentMenu < 17){
+				  currentMenu -= 1;
+				  if (currentMenu < 11) currentMenu = 11;
+			  }
 		  }
 		  
-		  if (direction == 'down' && currentMenu == 2){
-			  inbox_current_message += 1;
-			  if (inbox_current_message >= inbox_messages.length) inbox_current_message = inbox_messages.length - 1;
+		  if (direction == 'down'){
+			  if(currentMenu == 0)
+				  currentMenu = 12;
+			  if(currentMenu == 12){
+			  	inbox_current_message += 1;
+			  	if (inbox_current_message >= inbox_messages.length) inbox_current_message = inbox_messages.length - 1;
+			  }
 		  }
 		  
-		  if (direction == 'up' && currentMenu == 2){
+		  if (direction == 'up'){
 			  inbox_current_message -= 1;
 			  if (inbox_current_message < 0) inbox_current_message = 0;
 		  }
@@ -89,18 +109,18 @@ $(document).ready(function(){
 	function afterMenuSelect(){
 		window.plugins.tts.speak(menus[currentMenu]);
 
-		if (currentMenu == 2 && inbox_messages.length > 0){
+		if (currentMenu == 12 && inbox_messages.length > 0){
 			window.plugins.tts.speak('' + inbox_messages.length + ' messages. message ' + inbox_current_message);
 			window.plugins.tts.speak(inbox_messages[inbox_current_message].subject);
 		}
 		
-		if (currentMenu == 20){
-			currentMenu = 2;
+		if (currentMenu == 19){ 
+			currentMenu = 12;
 			afterMenuSelect();
 		}
 
-		if (currentMenu == 21){
-			currentMenu = 2;
+		if (currentMenu == 22){
+			currentMenu = 12;
 			afterMenuSelect();
 		}
 
