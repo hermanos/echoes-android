@@ -25,12 +25,28 @@ var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,
              '', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '', 
              'reply all', 'reply', 'read message', 'forward'];
 
-var inbox_messages = [];
-var inbox_current_message = -1;
+
 var currentMessage = null;
 
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
 var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 0 };
+var mailbox = [];
+mailbox['inbox'] = {
+			current: -1,
+			messages: []
+			};
+mailbox['sent'] =  {
+				current: -1,
+				messages: []
+			};
+mailbox['archive'] = {
+				current: -1,
+				messages: []
+			};
+mailbox['trash'] =  {
+				current: -1,
+				messages :[]
+			}
 
 $(document).ready(function(){
 
@@ -57,21 +73,63 @@ $(document).ready(function(){
     		}
 		  
     		if (direction == 'down'){
-    			if ([12,13,14,15].indexOf(currentScreen) > -1 && inbox_current_message >= 0){
-    				inbox_current_message += 1;
+    			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+    				mailbox['inbox'].current += 1;
     				window.plugins.tts.stop(win, fail);
-			  	  	if (inbox_current_message >= inbox_messages.length) inbox_current_message = inbox_messages.length - 1;
+			  	  	if (mailbox['inbox'].current >= mailbox['inbox'].messages.length) mailbox['inbox'].current = mailbox['inbox'].messages.length - 1;
 			  	  	afterMessageSelect();
     			}
+    			
+    			if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
+    				mailbox['sent'].current += 1;
+    				window.plugins.tts.stop(win, fail);
+			  	  	if (mailbox['sent'].current >= mailbox['sent'].messages.length) mailbox['sent'].current = mailbox['sent'].messages.length - 1;
+			  	  	afterMessageSelect();
+    			}
+    			
+    			if ([14].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
+    				mailbox['archive'].current += 1;
+    				window.plugins.tts.stop(win, fail);
+			  	  	if (mailbox['archive'].current >= mailbox['archive'].messages.length) mailbox['archive'].current = mailbox['archive'].messages.length - 1;
+			  	  	afterMessageSelect();
+    			}
+    			
+    			if ([15].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
+    				mailbox['trash'].current += 1;
+    				window.plugins.tts.stop(win, fail);
+			  	  	if (mailbox['trash'].current >= mailbox['trash'].messages.length) mailbox['trash'].current = mailbox['trash'].messages.length - 1;
+			  	  	afterMessageSelect();
+    			}
+    			
     		}
 		  
     		if (direction == 'up'){
-    			if ([12,13,14,15].indexOf(currentScreen) > -1 && inbox_current_message >= 0){
-    				inbox_current_message -= 1;
+    			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+    				mailbox['inbox'].current -= 1;
     				window.plugins.tts.stop(win, fail);
-    				if (inbox_current_message < 0) inbox_current_message = 0;
+    				if (mailbox['inbox'].current < 0) mailbox['inbox'].current = 0;
     				afterMessageSelect();
     			}
+    			
+    			if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
+    				mailbox['sent'].current -= 1;
+    				window.plugins.tts.stop(win, fail);
+    				if (mailbox['sent'].current < 0) mailbox['sent'].current = 0;
+    				afterMessageSelect();
+    			}
+    			if ([14].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
+    				mailbox['archive'].current -= 1;
+    				window.plugins.tts.stop(win, fail);
+    				if (mailbox['archive'].current < 0) mailbox['archive'].current = 0;
+    				afterMessageSelect();
+    			}
+    			if ([15].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
+    				mailbox['trash'].current -= 1;
+    				window.plugins.tts.stop(win, fail);
+    				if (mailbox['trash'].current < 0) mailbox['trash'].current = 0;
+    				afterMessageSelect();
+    			}
+    			
 			}
 	    },
 	    
@@ -88,9 +146,9 @@ $(document).ready(function(){
 	    	if ([12,13,14,15].indexOf(currentScreen) > -1){
     			window.plugins.tts.stop(win, fail);
 
-	    		if (inbox_messages.length > 0){
+	    		if (mailbox['inbox'].messages.length > 0){
 					currentScreen = 22;
-					currentMessage = inbox_messages[inbox_current_message];
+					currentMessage = mailbox['inbox'].messages[mailbox['inbox'].current];
 					afterMenuSelect();
 			  	} else {
 					window.plugins.tts.speak('No messages. Refresh messages with long tap.');
@@ -155,10 +213,10 @@ $(document).ready(function(){
 	}
 	
 	function afterMessageSelect(){
-		if ([12,13,14,15].indexOf(currentScreen) > -1 && inbox_current_message >= 0){
-			currentMessage = inbox_messages[inbox_current_message];
-			window.plugins.tts.speak('' + inbox_messages.length + ' messages. message ' + inbox_current_message);
-			window.plugins.tts.speak(inbox_messages[inbox_current_message].subject);
+		if ([12,13,14,15].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+			currentMessage = mailbox['inbox'].messages[mailbox['inbox'].current];
+			window.plugins.tts.speak('' + mailbox['inbox'].messages.length + ' messages. message ' + mailbox['inbox'].current);
+			window.plugins.tts.speak(mailbox['inbox'].messages[mailbox['inbox'].current].subject);
 		}
 	}
 	
@@ -174,19 +232,20 @@ $(document).ready(function(){
             	current_user: currentUser.id
             },
             success: function(response){
-            	inbox_messages = [];
+            	mailbox['inbox'].messages = [];
+            	mailbox['inbox'].current = -1;
             	response.forEach(function(element, index, array) {
-            		inbox_messages.push(element);
+//            		 mailbox['inbox'].messages.push(element);
+            		 mailbox[element['folder']].messages.push(element);
+            		
             	});
-        		if (inbox_messages.length > 0){
-        			inbox_current_message = 0;
+        		if (mailbox['inbox'].messages.length > 0){
+        			mailbox['inbox'].current = 0;
                 	afterMessageSelect();
-        		} else {
-        			inbox_current_message = -1;
         		}
             },
             error: function(error) {
-            	window.plugins.tts.speak('error: ' + error.statusText);
+           	window.plugins.tts.speak('error: ' + error.statusText);
             }
         });		
 	}
@@ -220,7 +279,7 @@ $(document).ready(function(){
 //          url: 'http://ws.detectlanguage.com/0.2/detect', 
 //          dataType: 'json',
 //          data: {
-//          	q: encodeURIComponent(inbox_messages[inbox_current_message].subject + ' ' + inbox_messages[inbox_current_message].content),
+//          	q: encodeURIComponent(mailbox['inbox'].messages[mailbox['inbox'].current].subject + ' ' + mailbox['inbox'].messages[mailbox['inbox'].current].content),
 //          	key: '54eead2bd73d8072e015059bf234b645'
 //          },
 //          success: function(response){
