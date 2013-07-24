@@ -26,6 +26,7 @@ body {
     height: 100%;
     margin: 0px;
     padding: 0px;
+    font-size: 36px;
 }
 
 #events {
@@ -34,9 +35,27 @@ body {
 	background-size: 100%;
 }
 
+div.page {
+	display: none;
+	color: white;
+}
 
-	
+div.page div.page-title {
+	font-size: 2em;
+}
 
+div.page div.read-text {
+	font-size: 1em;
+}
 
+div.page div.read-help {
+	display: none;
+}
 
+div#status, div#status2 {
+	color: white;
+}
 
+div#help {
+	height: 25%;
+}
