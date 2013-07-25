@@ -28,7 +28,7 @@ var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,
 var currentMessage = null;
 
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 3 };
+var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 0 };
 var mailbox = [];
 mailbox['inbox'] = {
 			current: -1,
@@ -347,6 +347,29 @@ $(document).ready(function(){
 		window.plugins.tts.speak("Name:" + contacts[currentContact].name);
 		window.plugins.tts.speak("Email:" + contacts[currentContact].email);	  
 	}
+	
+
+ $("#sync-button").click(function () {
+	$.ajax({
+	       type: "POST",
+	       url: 'http://staging.echoesapp.com/api/updatemail',
+	       dataType: 'json',
+	       success: function (response) {
+	
+	           if (response.success == true) {
+	               currentScreen = 5;
+	               afterMenuSelect();
+	           } else {
+	               alert("Email or password incorrect");
+	               window.plugins.tts.speak("Email or password incorrect");
+	           }
+	       
+	       },
+	       error: function (error) {
+	               alert("Something went wrong");
+	           }
+	});
+}
 	
 	
 //		read message		
