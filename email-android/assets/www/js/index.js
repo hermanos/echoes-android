@@ -18,18 +18,17 @@ function closeSplash(){
 
 //00-splash,    01-tutorial1, 02-tutorial2,    03-tutorial3, 04-add email, 05-sync
 //              11-compose,   12-inbox,        13-sent,      14-trash,     15-archive, 16-settings
-//20-reply all, 21-reply,     22-read message, 23-forward 
+//20-reply all, 21-reply,     22-read message, 23-forward 	 24-contacts
 
 var currentScreen = 0;
 var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,'add email' ,'syncronization', '', '', '', '', 
-             '', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '', 
-             'reply all', 'reply', 'read message', 'forward'];
-
+             'contacts-compose', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '', 
+             'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
 var currentMessage = null;
 
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 0 };
+var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 3 };
 var mailbox = [];
 mailbox['inbox'] = {
 			current: -1,
@@ -47,6 +46,9 @@ mailbox['trash'] =  {
 				current: -1,
 				messages :[]
 			}
+
+var contacts = [];
+var currentContact = -1;
 
 $(document).ready(function(){
 
@@ -100,6 +102,18 @@ $(document).ready(function(){
 			  	  	if (mailbox['trash'].current >= mailbox['trash'].messages.length) mailbox['trash'].current = mailbox['trash'].messages.length - 1;
 			  	  	afterMessageSelect();
     			}
+    			if ([24].indexOf(currentScreen) > -1 && currentContact >= 0){
+    				currentContact += 1;
+    				window.plugins.tts.stop(win, fail);
+			  	  	if (currentContact >= contacts.length) currentContact = contacts.length - 1;
+			  	  	afterContactSelect();
+    			}
+    			if ([10].indexOf(currentScreen) > -1 && currentContact >= 0){
+    				currentContact += 1;
+    				window.plugins.tts.stop(win, fail);
+			  	  	if (currentContact >= contacts.length) currentContact = contacts.length - 1;
+			  	  	afterContactSelect();
+    			}
     			
     		}
 		  
@@ -129,6 +143,30 @@ $(document).ready(function(){
     				if (mailbox['trash'].current < 0) mailbox['trash'].current = 0;
     				afterMessageSelect();
     			}
+    			if ([24].indexOf(currentScreen) > -1 && currentContact >= 0){
+    				currentContact -= 1;
+    				window.plugins.tts.stop(win, fail);
+    				if (currentContact < 0) currentContact = 0;
+    				afterContactSelect();
+    			}
+    			if ([10].indexOf(currentScreen) > -1 && currentContact >= 0){
+    				currentContact -= 1;
+    				window.plugins.tts.stop(win, fail);
+    				if (currentContact < 0) currentContact = 0;
+    				afterContactSelect();
+    			}
+    			if([11].indexOf(currentScreen) > -1) {
+	    			currentScreen = 10;
+	    			window.plugins.tts.stop(win, fail);
+	    			afterMenuSelect();
+	    			refreshContacts();
+	    		}
+    			if([23].indexOf(currentScreen) > -1) {
+	    			currentScreen = 24;
+	    			window.plugins.tts.stop(win, fail);
+	    			afterMenuSelect();
+	    			refreshContacts();
+	    		}
     			
 			}
 	    },
@@ -150,9 +188,9 @@ $(document).ready(function(){
 					currentScreen = 22;
 					currentMessage = mailbox['inbox'].messages[mailbox['inbox'].current];
 					afterMenuSelect();
-			  	} else {
+				} else {
 					window.plugins.tts.speak('No messages. Refresh messages with long tap.');
-			  	}
+				}
 	    	} 
 	    	else {
 		    	if (currentScreen == 22){
@@ -160,7 +198,19 @@ $(document).ready(function(){
 		    		currentScreen = 12;
 		    		afterMenuSelect();
 		    		afterMessageSelect();
-		    	}	    		
+		    	}	   
+		    	if(currentScreen == 24){
+		    		window.plugins.tts.stop(win, fail);
+		    		currentScreen = 23;
+		    		afterMenuSelect();
+		    		$('p.contact-email').text(contacts[currentContact].email);
+		    	}
+		    	if(currentScreen == 10){
+		    		window.plugins.tts.stop(win, fail);
+		    		currentScreen = 11;
+		    		afterMenuSelect();
+		    		$('p.contact-email').text(contacts[currentContact].email);
+		    	}
 	    	}
 	    }
 	});
@@ -256,6 +306,49 @@ $(document).ready(function(){
 		window.plugins.tts.speak("Subject:" + currentMessage.subject);
 		window.plugins.tts.speak("Content:" + currentMessage.content);		  
 	}
+	
+	// retrieve contacts	
+	function refreshContacts(){
+		window.plugins.tts.speak('refreshing contacts');
+		
+		$.ajax({
+            type: "GET",
+            url: 'http://staging.echoesapp.com/contacts.json',
+            dataType: 'json',
+            data: {
+            	current_user: currentUser.id
+            },
+            success: function(response){
+            	contacts = [];
+            	currentContact = -1;
+            	response.forEach(function(element, index, array) {
+            		 contacts.push(element);
+            	});
+        		if (contacts.length > 0){
+        			currentContact = 0;
+                	afterContactSelect();
+        		}
+            },
+            error: function(error) {
+//            	window.plugins.tts.speak('error: ' + error.statusText);
+            	alert(error.statusText);
+            }
+        });	
+	}
+	
+	function afterContactSelect(){
+		if ([10,24].indexOf(currentScreen) > -1 && currentContact >= 0){
+			window.plugins.tts.speak('' + contacts.length + ' contacts. contact ' + currentContact);
+			readCurrentContact();
+		}
+	}
+	
+	function readCurrentContact(){
+		window.plugins.tts.speak("Name:" + contacts[currentContact].name);
+		window.plugins.tts.speak("Email:" + contacts[currentContact].email);	  
+	}
+	
+	
 //		read message		
 //		current_user_id = 1;
 //		message_id = 4;

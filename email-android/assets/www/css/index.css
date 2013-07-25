@@ -59,3 +59,13 @@ div#status, div#status2 {
 div#help {
 	height: 25%;
 }
+
+div.page-title{
+	display: block;
+}
+
+p.contact-email{
+	display:inline-block;
+}
+
+	
