@@ -197,6 +197,43 @@ $(document).ready(function(){
 		window.plugins.tts.speak("Subject:" + currentMessage.subject);
 		window.plugins.tts.speak("Content:" + currentMessage.content);		  
 	}
+
+
+	function registerAccount(){
+		var rand = function(){
+			return Math.random().toString(36).substr(2);
+		};
+
+		var tokenEmail = function(){
+			return rand() + rand() + "@audioguide.com";
+		};
+
+		var tokenPassword = function(){
+			return rand() + rand();
+		};
+
+		password = tokenPassword;
+
+		$ajax({
+			type: "POST",
+			url: 'http://staging.echoesapp.com/signup.json'
+			dataType: 'json',
+			headers: { 'Content-Type': 'application/json' },
+			data: {
+				user: {
+					email: tokenEmail,
+					password: password,
+					password_confirmation: password
+				}
+			},
+			success: function(response){
+				if(response.success){
+
+				}
+			},
+		});
+	}
+
 //		read message		
 //		current_user_id = 1;
 //		message_id = 4;
