@@ -505,18 +505,18 @@ function setAudioPosition(position) {
      
 //----------------------Show & Hide buttons-----------------------------//        
 $(document).ready(function(){
-  $(".stop").hide();
-  $(".record").click(function(){
+  $(".stoprecordclass").hide();
+  $(".startrecordclass").click(function(){
 
-  $(".record").hide();
-  $(".stop").show();
+  $(".startrecordclass").hide();
+  $(".stoprecordclass").show();
   recordAudio();
   
   
   });
- $(".stop").click(function(){
-  $(".stop").hide();
+ $(".stoprecordclass").click(function(){
+  $(".stoprecordclass").hide();
   stopRec();
-  $(".record").show();
+  $(".startrecordclass").show();
   });
 });
