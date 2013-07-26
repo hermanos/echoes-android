@@ -28,7 +28,7 @@ var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,
 var currentMessage = null;
 
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 0 };
+var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 1 };
 var mailbox = [];
 mailbox['inbox'] = {
 			current: -1,
@@ -353,11 +353,14 @@ $(document).ready(function(){
 		 function () {
 			 $.ajax({
 				 type: "POST",
-				 url: 'http://staging.echoesapp.com/api/updatemail',
+				 url: 'http://staging.echoesapp.com/api/updatemail.json',
+				 headers:  {'Content-Type' : 'application/json'},
+				 data: {email_address: $('#email-input').text() , email_password: $('#password-input').text()},
 				 dataType: 'json',
+				 
 				 success: function (response) {
+					 alert(response);
 					 if (response.success == true) {
-						 currentScreen = 5;
 						 afterMenuSelect();
 					 }else {
 						 alert("Email or password incorrect");
@@ -372,22 +375,6 @@ $(document).ready(function(){
 		});
 	
 	
-//		read message		
-//		current_user_id = 1;
-//		message_id = 4;
-//        $.ajax({
-//            type: "GET",
-//            url: 'http://staging.echoesapp.com/messages/' + message_id + '.json',
-//            dataType: 'json',
-//            data: {},
-//            success: function(response){
-//            	window.plugins.tts.speak(response['content']);
-//            },
-//            error: function(error) {
-//              alert(error.statusText);
-//            }
-//        });		
-//		
 
 	  // detect language
 //	  $.ajax({
