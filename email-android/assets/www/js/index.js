@@ -508,8 +508,8 @@ $(document).ready(function(){
   $(".stop").hide();
   $(".record").click(function(){
 
-  $(".record").hide(1000);
-  $(".stop").show(1000);
+  $(".record").hide();
+  $(".stop").show();
   recordAudio();
   
   
@@ -517,6 +517,6 @@ $(document).ready(function(){
  $(".stop").click(function(){
   $(".stop").hide();
   stopRec();
-  $(".record").show(1000);
+  $(".record").show();
   });
 });
