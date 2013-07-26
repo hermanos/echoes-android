@@ -349,27 +349,27 @@ $(document).ready(function(){
 	}
 	
 
- $("#sync-button").click(function () {
-	$.ajax({
-	       type: "POST",
-	       url: 'http://staging.echoesapp.com/api/updatemail',
-	       dataType: 'json',
-	       success: function (response) {
-	
-	           if (response.success == true) {
-	               currentScreen = 5;
-	               afterMenuSelect();
-	           } else {
-	               alert("Email or password incorrect");
-	               window.plugins.tts.speak("Email or password incorrect");
-	           }
+ $("#sync-button").click(
+		 function () {
+			 $.ajax({
+				 type: "POST",
+				 url: 'http://staging.echoesapp.com/api/updatemail',
+				 dataType: 'json',
+				 success: function (response) {
+					 if (response.success == true) {
+						 currentScreen = 5;
+						 afterMenuSelect();
+					 }else {
+						 alert("Email or password incorrect");
+						 window.plugins.tts.speak("Email or password incorrect");
+					 }
 	       
-	       },
-	       error: function (error) {
-	               alert("Something went wrong");
-	           }
-	});
-}
+				 },
+				 error: function (error) {
+					 alert("Something went wrong");
+				 }
+			 });
+		});
 	
 	
 //		read message		
