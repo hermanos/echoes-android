@@ -397,3 +397,113 @@ $(document).ready(function(){
 
 	
 });
+
+//-----------------------------------------//
+//--------------RECORD------------------/
+var src;
+var mediaRec;
+
+ function recordAudio() {
+        src = "echomessage.mp3";
+        mediaRec = new Media(src, onSuccess, onError);
+        
+        // Record audio
+        mediaRec.startRecord();
+		
+        // Stop recording after 30 sec
+        var recTime = 0;
+        var recInterval = setInterval(function() {
+            recTime = recTime + 1;
+          
+            if (recTime >= 30) {
+                clearInterval(recInterval);
+                mediaRec.stopRecord();
+            }
+         
+        }, 1000);
+        
+    }
+    //--------------STOP REC --------------//
+	function stopRec(){
+			
+			mediaRec.stopRecord();
+	}
+     
+    //-------------- PLAY--------------------//
+    
+        // Play audio
+
+       function playAudio(src) {
+        var src = "echomessage.mp3";
+        var my_media = null;
+        var mediaTimer = null;
+            if (my_media == null) {
+                // Create Media object from src
+                my_media = new Media(src, onSuccess, onError);
+            } // else play current audio
+            // Play audio
+            my_media.play();
+
+            // Update my_media position every second
+            if (mediaTimer == null) {
+                mediaTimer = setInterval(function() {
+                    // get my_media position
+                    my_media.getCurrentPosition(
+                        // success callback
+                        function(position) {
+                            if (position > -1) {
+                                setAudioPosition((position) + " sec");
+                            }
+                        },
+                        // error callback
+                        function(e) {
+                            console.log("Error getting pos=" + e);
+                            setAudioPosition("Error: " + e);
+                        }
+                    );
+                }, 1000);
+            }
+        }
+
+
+
+ // Cordova is ready
+    //
+    function onDeviceReady() {
+        recordAudio();
+    }
+
+    // onSuccess Callback
+    //
+    function onSuccess() {
+        console.log("recordAudio():Audio Success");
+    }
+
+    // onError Callback 
+    //
+    function onError(error) {
+        alert('code: '    + error.code    + '\n' + 
+              'message: ' + error.message + '\n');
+    }
+	 
+function setAudioPosition(position) {
+            document.getElementById('audio_position').innerHTML = position;
+        }
+     
+//----------------------Show & Hide buttons-----------------------------//        
+$(document).ready(function(){
+  $(".stoprecordclass").hide();
+  $(".startrecordclass").click(function(){
+
+  $(".startrecordclass").hide();
+  $(".stoprecordclass").show();
+  recordAudio();
+  
+  
+  });
+ $(".stoprecordclass").click(function(){
+  $(".stoprecordclass").hide();
+  stopRec();
+  $(".startrecordclass").show();
+  });
+});
