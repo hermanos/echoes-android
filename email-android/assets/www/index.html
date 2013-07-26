@@ -63,7 +63,7 @@
 				</div>
 			</div> 
 
-			<div class="page" id="page-3">
+			<div class="page" id="page-3"
 				<div class="page-title">
 					Tutorial page 3
 				</div>
@@ -79,8 +79,23 @@
 				<div class="page-title">
 					Connect your email
 				</div>
+				<div id="email-data">
+					<input type="email" name="email-input" id="email-input" value placeholder="Enter your email" class="ui-corner-all ui-shadow-inset">
+					<input type="password" name="password-input" id="password-input" value placeholder="Password" class="ui-corner-all ui-shadow-inset">
+					<div id="sync-button">Sync</div>
+				</div>
 				<div class="read-text">
 					Enter your email credentials, then swipe left to connect Echoes to your email.
+				</div>
+				
+			</div>
+			
+			<div class="page" id="page-10">
+				<div class="page-title">
+					Contacts
+				</div>
+				<div class="read-text">
+					Contacts
 				</div>
 			</div>
 
@@ -98,8 +113,16 @@
 				<div class="page-title">
 					Compose
 				</div>
+				<div class="page-content">
+					<label>To: </label>
+			    	<p class="contact-email"></p>
+			    </div>
 				<div class="read-text">
 					Compose 
+					
+				<input type="button" class="startrecordclass" value="Record message">
+				<input type="button" class="stoprecordclass" value="Stop Recording">
+				<input type="button" value="Play message" onclick="playAudio()">
 				</div>
 			</div>
 
@@ -184,11 +207,24 @@
 				<div class="page-title">
 					Forward
 				</div>
+				<div class="page-content">
+					<label>To: </label>
+			    	<p class="contact-email"></p>
+			    </div>
 				<div class="read-text">
 					Forward
 				</div>
 			</div>
 
+			<div class="page" id="page-24">
+				<div class="page-title">
+					Contacts
+				</div>
+				<div class="read-text">
+					Contacts
+				</div>
+			</div>
+			
 			<div id="status">
 			</div>
 			<div id="status2">

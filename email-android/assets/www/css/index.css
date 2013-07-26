@@ -59,3 +59,30 @@ div#status, div#status2 {
 div#help {
 	height: 25%;
 }
+
+div.page-title{
+	display: block;
+}
+
+p.contact-email{
+	display:inline-block;
+}
+
+		div#email-data{
+	margin-bottom: 1em;
+	margin-top: 1em;
+	text-align: center;
+}
+input#basic{
+	margin-bottom: 1em;
+}
+div#sync-button {
+	background-color: #B4B485;
+	padding: 10px 50px;
+	margin-top: 1em;
+	border-radius: 10px;
+	text-decoration: none;
+	color: white;
+}
+
+	
