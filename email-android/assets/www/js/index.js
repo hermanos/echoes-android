@@ -453,19 +453,28 @@ $(document).ready(function(){
 	
 });
 
-//-----------------------------------------//
-//--------------RECORD------------------/
-var src;
+//-----------------VARIABLES------------------------//
+
 var mediaRec;
 
+var randnrmsgname = Math.floor(Math.random()*1001);  // generates a random number between 1 - 1000 
+
+var currenttimestampz = new Date();
+
+var getcurrenttimez = "" + currenttimestampz.getFullYear() + "m" + currenttimestampz.getMonth() + "d" + currenttimestampz.getDate() + "h" + currenttimestampz.getHours() + "m" + currenttimestampz.getMinutes() + "s" + currenttimestampz.getSeconds();
+
+var src = "echomessage" + getcurrenttimez + randnrmsgname + ".mp3";  // src variable (message) gets timestamp + a random number + mp3 extension as a name
+
+//--------------RECORD------------------/
+
  function recordAudio() {
-        src = "echomessage.mp3";
+        
         mediaRec = new Media(src, onSuccess, onError);
         
-        // Record audio
+        // Record audio begins here
         mediaRec.startRecord();
 		
-        // Stop recording after 30 sec
+        // Stops recording after 30 sec (default if stopRec is not called)
         var recTime = 0;
         var recInterval = setInterval(function() {
             recTime = recTime + 1;
@@ -478,23 +487,23 @@ var mediaRec;
         }, 1000);
         
     }
-    //--------------STOP REC --------------//
+//--------------STOP REC --------------//
 	function stopRec(){
 			
 			mediaRec.stopRecord();
 	}
      
-    //-------------- PLAY--------------------//
+//-------------- PLAY--------------------//
     
         // Play audio
 
-       function playAudio(src) {
-        var src = "echomessage.mp3";
+       function playAudio(srcm) {
+        var srcm = src;
         var my_media = null;
         var mediaTimer = null;
             if (my_media == null) {
-                // Create Media object from src
-                my_media = new Media(src, onSuccess, onError);
+                // Creates Media object from srcm
+                my_media = new Media(srcm, onSuccess, onError);
             } // else play current audio
             // Play audio
             my_media.play();
@@ -547,18 +556,28 @@ function setAudioPosition(position) {
      
 //----------------------Show & Hide buttons-----------------------------//        
 $(document).ready(function(){
-  $(".stoprecordclass").hide();
-  $(".startrecordclass").click(function(){
+	
+  $("#echostoprecmsgbtn").hide();
+  $("#echoplaymsgbtn").hide();
+  
+  $("#echostartrecmsgbtn").click(function(){
 
-  $(".startrecordclass").hide();
-  $(".stoprecordclass").show();
+  $("#echostartrecmsgbtn").hide();
+  $("#echostoprecmsgbtn").show();
+  $("#playbttn").hide();
   recordAudio();
-  
-  
   });
- $(".stoprecordclass").click(function(){
-  $(".stoprecordclass").hide();
+  
+ $("#echostoprecmsgbtn").click(function(){
+  $("#echostoprecmsgbtn").hide();
   stopRec();
-  $(".startrecordclass").show();
+  $("#echoplaymsgbtn").show();
+  $("#echostartrecmsgbtn").show();
   });
+  
+  
+  $("#echoplaymsgbtn").click(function(){
+  playAudio();
+  });
+  
 });
