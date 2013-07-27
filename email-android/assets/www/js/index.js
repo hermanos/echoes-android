@@ -463,7 +463,7 @@ var currenttimestampz = new Date();
 
 var getcurrenttimez = "" + currenttimestampz.getFullYear() + "m" + currenttimestampz.getMonth() + "d" + currenttimestampz.getDate() + "h" + currenttimestampz.getHours() + "m" + currenttimestampz.getMinutes() + "s" + currenttimestampz.getSeconds();
 
-var src = "echomessage" + getcurrenttimez + randnrmsgname + ".mp3";  // src variable (message) gets timestamp + a random number + mp3 extension as a name
+var src = "echomessage" + getcurrenttimez + "rn" + randnrmsgname + ".mp3";  // src variable (message) gets timestamp + a random number + mp3 extension as a name
 
 //--------------RECORD------------------/
 
