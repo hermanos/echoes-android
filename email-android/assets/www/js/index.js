@@ -202,14 +202,14 @@ $(document).ready(function(){
 		    	if(currentScreen == 24){
 		    		window.plugins.tts.stop(win, fail);
 		    		currentScreen = 23;
+		    		$('#page-23 p.contact-email').text(contacts[currentContact].email);
 		    		afterMenuSelect();
-		    		$('p.contact-email').text(contacts[currentContact].email);
 		    	}
 		    	if(currentScreen == 10){
 		    		window.plugins.tts.stop(win, fail);
 		    		currentScreen = 11;
+		    		$('#page-11 p.contact-email').text(contacts[currentContact].email);
 		    		afterMenuSelect();
-		    		$('p.contact-email').text(contacts[currentContact].email);
 		    	}
 	    	}
 	    }
