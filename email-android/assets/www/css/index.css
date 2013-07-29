@@ -85,4 +85,6 @@ div#sync-button {
 	text-decoration: none;
 	color: white;
 }
-
+#stop-record, #play-button {
+	display: none;
+}
