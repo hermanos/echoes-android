@@ -8,7 +8,7 @@ var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 1 };
+var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 0 };
 var mailbox = [];
 mailbox['inbox'] = {
 			current: -1,
@@ -32,56 +32,85 @@ var currentContact = -1;
 
 $(document).ready(function(){
 
+	
+
+	
+	
+	
+	
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
-	// initialize local storage
-	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, fail);
 	afterMenuSelect();
 	
 	// gestures handlers
 	$("#events").swipe({
-	    swipe: swipeCustomCallback(event, direction, distance, duration, fingerCount),
-	    longTap: longTapCustomCallback(event, target),
-	    tap: tapCustomCallback(event, target)	    
+	    swipe: function(event, direction, distance, duration, fingerCount){
+	    	swipeCustomCallback(event, direction, distance, duration, fingerCount);
+	    },
+	    longTap: function(event, target){
+	    	longTapCustomCallback(event, target);
+	    },
+	    tap: function(event, target){
+	    	tapCustomCallback(event, target);	    
+	    }
 	});
 
-    function gotFS(fileSystem){
-    	fileSystem.root.getFile("word", {create: true, exclusive: false}, win, fail);
-    }
-	    
-    function registerAccount(){
-    	var rand = function(){
-    		return Math.random().toString(36).substr(2);
-    	};
-    	var phone = device.uuid;
-    	var password = $.md5(rand());
-    	create_writer = function(fileEntry) {
-    	                    fileEntry.createWriter(write_file, onFileSystemError);
-    	                };
-    	write_file = function(writer){
-    		writer.write(password);
-    	};
-    	$.ajax({
-    		type: "POST",
-    		url: 'http://staging.echoesapp.com/signup.json',
-    		dataType: 'json',
-    		headers: { 'Content-Type': 'application/json' },
-    		data: {
-    			user: {
-    				email: 'user_' + device.uuid + '@audioguide.com',
-    				password: password,
-    				password_confirmation: password
-    			}
-    		},
-    		success: function(response){
-    			if(response.success){
-   					alert("Successfuly registered");
-   					fileSystem.root.getFile("word", null, create_writer, fail);	
-    			}
-    		}
-    	});
-    }
+	var getFileSystemRoot = function(){
+		var root;
+
+		var init = function(){
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem){
+				root = fileSystem.root;
+			}, onFileSystemError);
+		};
+
+		return function(){
+			return root
+		};
+	};
+
+	function onFileSystemError(error){
+		console.log("FileSystemError" + error);
+	}
+
+	function registerAccount(){
+		var root = getFileSystemRoot();
+		var rand = function(){
+			return Math.random().toString(36).substr(2);
+		};
+		var phone = device.uuid;
+		var password = $.md5(rand());
+		create_writer = function(fileEntry) {
+		                    fileEntry.createWriter(write_file, onFileSystemError);
+		                };
+		write_file = function(writer){
+			writer.write(password);
+		};
+		$.ajax({
+			type: "POST",
+			url: 'http://staging.echoesapp.com/signup.json',
+			dataType: 'json',
+			headers: { 'Content-Type': 'application/json' },
+			data: {
+				user: {
+								email: 'user_' + phone + '@echoesapp.com',
+								password: password,
+								password_confirmation: password
+				}
+			},
+			success: function(response){
+				if(response.success){
+					alert("Successfuly registered");
+					root.getFile("word", {create: true, exclusive: true}, create_writer, fail);	
+				}
+				else alert("Something failed horribly");
+			},
+			error: function(error){
+				alert(error);
+			}
+		});
+	}
 	
 	function afterMenuSelect(){
 
@@ -172,24 +201,6 @@ $(document).ready(function(){
 		window.plugins.tts.speak("Content:" + mailbox['inbox'].messages[mailbox['inbox'].current].content);		  
 
 	}
-
-//		read message		
-//		current_user_id = 1;
-//		message_id = 4;
-//        $.ajax({
-//            type: "GET",
-//            url: 'http://staging.echoesapp.com/messages/' + message_id + '.json',
-//            dataType: 'json',
-//            data: {},
-//            success: function(response){
-//            	window.plugins.tts.speak(response['content']);
-//            },
-//            error: function(error) {
-//              alert(error.statusText);
-//            }
-//        });		
-//		
-
 	
 	// retrieve contacts	
 	function refreshContacts(){
@@ -214,7 +225,6 @@ $(document).ready(function(){
         		}
             },
             error: function(error) {
-//            	window.plugins.tts.speak('error: ' + error.statusText);
             	alert(error.statusText);
             }
         });	
@@ -233,30 +243,209 @@ $(document).ready(function(){
 	}
 	
 
- $("#sync-button").click(
-		 function () {
-			 $.ajax({
-				 type: "POST",
-				 url: 'http://staging.echoesapp.com/api/updatemail.json',
-				 headers:  {'Content-Type' : 'application/json'},
-				 data: {email_address: $('#email-input').text() , email_password: $('#password-input').text()},
-				 dataType: 'json',
-				 
-				 success: function (response) {
-					 alert(response);
-					 if (response.success == true) {
-						 afterMenuSelect();
-					 }else {
-						 alert("Email or password incorrect");
-						 window.plugins.tts.speak("Email or password incorrect");
+	$("#sync-button").click(function(){
+		 $.ajax({
+			 type: "POST",
+			 url: 'http://staging.echoesapp.com/api/updatemail.json',
+			 headers:  {'Content-Type' : 'application/json'},
+			 data: {email_address: $('#email-input').text() , email_password: $('#password-input').text()},
+			 dataType: 'json',
+			 
+			 success: function (response) {
+				 alert(response);
+				 if (response.success == true) {
+					 afterMenuSelect();
+				 }else {
+					 alert("Email or password incorrect");
+					 window.plugins.tts.speak("Email or password incorrect");
 					 }
-	       
+		   
 				 },
 				 error: function (error) {
 					 alert("Something went wrong");
-				 }
-			 });
-		});
+			 }
+		 });
+	});
+
+	$("#start-record").click(function(){
+		$("#start-record").hide();
+		$("#stop-record").show();
+		$("#play-button").hide();
+		recordAudio();
+	});
+  
+	$("#record-button").click(function(){
+		$("#stop-record").hide();
+		stopRec();
+		$("#play-button").show();
+		$("#start-record").show();
+	});
+  
+	$("#play-button").click(function(){
+		playAudio();
+	});
+
+	
+	
+	
+	
+	
+	
+	// CALLBACKS
+	function swipeCustomCallback(event, direction, distance, duration, fingerCount) {
+		previousScreen = currentScreen;
+	  
+	    if (direction == 'left'){
+		    if([0,1,2,3,11,12,13,14,15,20,21,22,4].indexOf(currentScreen) > -1) currentScreen += 1;
+		    window.plugins.tts.stop(win, fail);
+		    afterMenuSelect();
+	    }
+	
+		if (direction == 'right'){
+			if([1,2,3,4,12,13,14,15,16,21,22,23].indexOf(currentScreen) > -1) currentScreen -= 1;
+			window.plugins.tts.stop(win, fail);
+			afterMenuSelect();
+		}
+	  
+		if (direction == 'down'){
+			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+				mailbox['inbox'].current += 1;
+				window.plugins.tts.stop(win, fail);
+		  	  	if (mailbox['inbox'].current >= mailbox['inbox'].messages.length) mailbox['inbox'].current = mailbox['inbox'].messages.length - 1;
+		  	  	afterMessageSelect();
+			}
+			
+			if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
+				mailbox['sent'].current += 1;
+				window.plugins.tts.stop(win, fail);
+		  	  	if (mailbox['sent'].current >= mailbox['sent'].messages.length) mailbox['sent'].current = mailbox['sent'].messages.length - 1;
+		  	  	afterMessageSelect();
+			}
+			
+			if ([14].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
+				mailbox['archive'].current += 1;
+				window.plugins.tts.stop(win, fail);
+		  	  	if (mailbox['archive'].current >= mailbox['archive'].messages.length) mailbox['archive'].current = mailbox['archive'].messages.length - 1;
+		  	  	afterMessageSelect();
+			}
+			
+			if ([15].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
+				mailbox['trash'].current += 1;
+				window.plugins.tts.stop(win, fail);
+		  	  	if (mailbox['trash'].current >= mailbox['trash'].messages.length) mailbox['trash'].current = mailbox['trash'].messages.length - 1;
+		  	  	afterMessageSelect();
+			}
+			if ([24].indexOf(currentScreen) > -1 && currentContact >= 0){
+				currentContact += 1;
+				window.plugins.tts.stop(win, fail);
+		  	  	if (currentContact >= contacts.length) currentContact = contacts.length - 1;
+		  	  	afterContactSelect();
+			}
+			if ([10].indexOf(currentScreen) > -1 && currentContact >= 0){
+				currentContact += 1;
+				window.plugins.tts.stop(win, fail);
+		  	  	if (currentContact >= contacts.length) currentContact = contacts.length - 1;
+		  	  	afterContactSelect();
+			}	
+		}
+			  
+		if (direction == 'up'){
+			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+				mailbox['inbox'].current -= 1;
+				window.plugins.tts.stop(win, fail);
+				if (mailbox['inbox'].current < 0) mailbox['inbox'].current = 0;
+				afterMessageSelect();
+			}
+			
+			if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
+				mailbox['sent'].current -= 1;
+				window.plugins.tts.stop(win, fail);
+				if (mailbox['sent'].current < 0) mailbox['sent'].current = 0;
+				afterMessageSelect();
+			}
+			if ([14].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
+				mailbox['archive'].current -= 1;
+				window.plugins.tts.stop(win, fail);
+				if (mailbox['archive'].current < 0) mailbox['archive'].current = 0;
+				afterMessageSelect();
+			}
+			if ([15].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
+				mailbox['trash'].current -= 1;
+				window.plugins.tts.stop(win, fail);
+				if (mailbox['trash'].current < 0) mailbox['trash'].current = 0;
+				afterMessageSelect();
+			}
+			if ([24].indexOf(currentScreen) > -1 && currentContact >= 0){
+				currentContact -= 1;
+				window.plugins.tts.stop(win, fail);
+				if (currentContact < 0) currentContact = 0;
+				afterContactSelect();
+			}
+			if ([10].indexOf(currentScreen) > -1 && currentContact >= 0){
+				currentContact -= 1;
+				window.plugins.tts.stop(win, fail);
+				if (currentContact < 0) currentContact = 0;
+				afterContactSelect();
+			}
+			if([11].indexOf(currentScreen) > -1) {
+				currentScreen = 10;
+				window.plugins.tts.stop(win, fail);
+				afterMenuSelect();
+				refreshContacts();
+			}
+			if([23].indexOf(currentScreen) > -1) {
+				currentScreen = 24;
+				window.plugins.tts.stop(win, fail);
+				afterMenuSelect();
+				refreshContacts();
+			}
+		}
+	}
+
+
+	function longTapCustomCallback(event, target) {
+    	if ($(target).attr("id") == 'help') {
+			window.plugins.tts.speak('Help. ' + $('#page-' + currentScreen + ' .read-help').text());
+    	} else {
+    		if([12,13,14,15].indexOf(currentScreen) > -1) refreshMessages('');
+    		if([0,1,2,3,4].indexOf(currentScreen) > -1) afterMenuSelect();
+		}
+    }
+	
+	
+	function tapCustomCallback(event, target) {
+    	if ([12,13,14,15].indexOf(currentScreen) > -1){
+			window.plugins.tts.stop(win, fail);
+
+    		if (mailbox['inbox'].messages.length > 0){
+				currentScreen = 22;
+				afterMenuSelect();
+			} else {
+				window.plugins.tts.speak('No messages. Refresh messages with long tap.');
+			}
+    	} 
+    	else {
+	    	if (currentScreen == 22){
+    			window.plugins.tts.stop(win, fail);
+	    		currentScreen = 12;
+	    		afterMenuSelect();
+	    		afterMessageSelect();
+	    	}	   
+	    	if(currentScreen == 24){
+	    		window.plugins.tts.stop(win, fail);
+	    		currentScreen = 23;
+	    		$('#page-23 p.contact-email').text(contacts[currentContact].email);
+	    		afterMenuSelect();
+	    	}
+	    	if(currentScreen == 10){
+	    		window.plugins.tts.stop(win, fail);
+	    		currentScreen = 11;
+	    		$('#page-11 p.contact-email').text(contacts[currentContact].email);
+	    		afterMenuSelect();
+	    	}
+    	}
+	}
+	// END CALLBACKS
 
 });
 
@@ -302,84 +491,63 @@ var src = "echomessage" + getcurrenttimez + "rn" + randnrmsgname + ".mp3";  // s
      
 //-------------- PLAY--------------------//
     
-        // Play audio
+// Play audio
 
-       function playAudio(srcm) {
-        var srcm = src;
-        var my_media = null;
-        var mediaTimer = null;
-            if (my_media == null) {
-                // Creates Media object from srcm
-                my_media = new Media(srcm, onSuccess, onError);
-            } // else play current audio
-            // Play audio
-            my_media.play();
+function playAudio(srcm) {
+	var srcm = src;
+	var my_media = null;
+	var mediaTimer = null;
+    
+	if (my_media == null) {
+        // Creates Media object from srcm
+        my_media = new Media(srcm, onSuccess, onError);
+    } // else play current audio
+    	
+	// Play audio
+	my_media.play();
 
-            // Update my_media position every second
-            if (mediaTimer == null) {
-                mediaTimer = setInterval(function() {
-                    // get my_media position
-                    my_media.getCurrentPosition(
-                        // success callback
-                        function(position) {
-                            if (position > -1) {
-                                setAudioPosition((position) + " sec");
-                            }
-                        },
-                        // error callback
-                        function(e) {
-                            console.log("Error getting pos=" + e);
-                            setAudioPosition("Error: " + e);
-                        }
-                    );
-                }, 1000);
-            }
-        }
-
-
-
- // Cordova is ready
-    //
-    function onDeviceReady() {
-        recordAudio();
+    // Update my_media position every second
+    if (mediaTimer == null) {
+        mediaTimer = setInterval(function() {
+            // get my_media position
+            my_media.getCurrentPosition(
+                // success callback
+                function(position) {
+                    if (position > -1) {
+                        setAudioPosition((position) + " sec");
+                    }
+                },
+                // error callback
+                function(e) {
+                    console.log("Error getting pos=" + e);
+                    setAudioPosition("Error: " + e);
+                }
+            );
+        }, 1000);
     }
+}
 
-    // onSuccess Callback
-    //
-    function onSuccess() {
-        console.log("recordAudio():Audio Success");
-    }
 
-    // onError Callback 
-    //
-    function onError(error) {
-        alert('code: '    + error.code    + '\n' + 
-              'message: ' + error.message + '\n');
-    }
+
+// Cordova is ready
+//
+function onDeviceReady() {
+    recordAudio();
+}
+
+// onSuccess Callback
+//
+function onSuccess() {
+    console.log("recordAudio():Audio Success");
+}
+
+// onError Callback 
+//
+function onError(error) {
+    alert('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
+}
 	 
 function setAudioPosition(position) {
-            document.getElementById('audio_position').innerHTML = position;
-        }
-     
-//----------------------Show & Hide buttons-----------------------------//        
-$(document).ready(function(){  
-
-	$("#start-record").click(function(){
-		$("#start-record").hide();
-		$("#stop-record").show();
-		$("#play-button").hide();
-		recordAudio();
-	});
-  
-	$("#record-button").click(function(){
-		$("#stop-record").hide();
-		stopRec();
-		$("#play-button").show();
-		$("#start-record").show();
-	});
-  
-	$("#play-button").click(function(){
-		playAudio();
-	});
-
-});
+    document.getElementById('audio_position').innerHTML = position;
+}
+ 
