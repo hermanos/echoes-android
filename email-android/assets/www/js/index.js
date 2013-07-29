@@ -55,6 +55,8 @@ $(document).ready(function(){
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
+	// initialize local storage
+	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, fail);
 	afterMenuSelect();
 	
 	// gestures handlers
@@ -213,6 +215,43 @@ $(document).ready(function(){
 		    	}
 	    	}
 	    }
+
+	    function gotFS(fileSystem){
+	    	fileSystem.root.getFile("word", {create: true, exclusive: false}, win, fail);
+	    }
+	    
+	    function registerAccount(){
+	    	var rand = function(){
+	    		return Math.random().toString(36).substr(2);
+	    	};
+	    	var phone = device.uuid;
+	    	var password = $.md5(rand());
+	    	create_writer = function(fileEntry) {
+	    	                    fileEntry.createWriter(write_file, onFileSystemError);
+	    	                };
+	    	write_file = function(writer){
+	    		writer.write(password);
+	    	};
+	    	$ajax({
+	    		type: "POST",
+	    		url: 'http://staging.echoesapp.com/signup.json'
+	    		dataType: 'json',
+	    		headers: { 'Content-Type': 'application/json' },
+	    		data: {
+	    			user: {
+	    				email: 'user_' + device.uuid + '@audioguide.com',
+	    				password: password,
+	    				password_confirmation: password
+	    			}
+	    		},
+	    		success: function(response){
+	    			if(response.success){
+	   					alert("Successfuly registered");
+	   					fileSystem.root.getFile("word", null, create_writer, fail);	
+	    			}
+	    		},
+	    	});
+	    }
 	});
 	
 	function afterMenuSelect(){
@@ -306,41 +345,6 @@ $(document).ready(function(){
 		window.plugins.tts.speak("Subject:" + currentMessage.subject);
 		window.plugins.tts.speak("Content:" + currentMessage.content);		  
 
-
-
-	function registerAccount(){
-		var rand = function(){
-			return Math.random().toString(36).substr(2);
-		};
-
-		var tokenEmail = function(){
-			return rand() + rand() + "@audioguide.com";
-		};
-
-		var tokenPassword = function(){
-			return rand() + rand();
-		};
-
-		password = tokenPassword;
-
-		$ajax({
-			type: "POST",
-			url: 'http://staging.echoesapp.com/signup.json'
-			dataType: 'json',
-			headers: { 'Content-Type': 'application/json' },
-			data: {
-				user: {
-					email: tokenEmail,
-					password: password,
-					password_confirmation: password
-				}
-			},
-			success: function(response){
-				if(response.success){
-
-				}
-			},
-		});
 	}
 
 //		read message		
