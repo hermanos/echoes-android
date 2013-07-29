@@ -37,8 +37,6 @@ $(document).ready(function(){
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
-	// initialize local storage
-	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, fail);
 	afterMenuSelect();
 	
 	// gestures handlers
@@ -196,45 +194,68 @@ $(document).ready(function(){
 		    		afterMenuSelect();
 		    	}
 	    	}
-	    }
-
-	    function gotFS(fileSystem){
-	    	fileSystem.root.getFile("word", {create: true, exclusive: false}, win, fail);
-	    }
-	    
-	    function registerAccount(){
-	    	var rand = function(){
-	    		return Math.random().toString(36).substr(2);
-	    	};
-	    	var phone = device.uuid;
-	    	var password = $.md5(rand());
-	    	create_writer = function(fileEntry) {
-	    	                    fileEntry.createWriter(write_file, onFileSystemError);
-	    	                };
-	    	write_file = function(writer){
-	    		writer.write(password);
-	    	};
-	    	$ajax({
-	    		type: "POST",
-	    		url: 'http://staging.echoesapp.com/signup.json'
-	    		dataType: 'json',
-	    		headers: { 'Content-Type': 'application/json' },
-	    		data: {
-	    			user: {
-	    				email: 'user_' + device.uuid + '@audioguide.com',
-	    				password: password,
-	    				password_confirmation: password
-	    			}
-	    		},
-	    		success: function(response){
-	    			if(response.success){
-	   					alert("Successfuly registered");
-	   					fileSystem.root.getFile("word", null, create_writer, fail);	
-	    			}
-	    		},
-	    	});
-	    }
+	    },
 	});
+
+ // function gotFS(fileSystem){
+ // 	fileSystem.root.getFile("word", {create: true, exclusive: false}, win, fail);
+ // }
+ 
+	var getFileSystemRoot = function(){
+		var root;
+
+		var init = function(){
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem){
+				root = fileSystem.root;
+			}, onFileSystemError);
+		};
+
+		return function(){
+			return root
+		};
+	};
+
+	function onFileSystemError(error){
+		console.log("FileSystemError" + error);
+	}
+
+	function registerAccount(){
+		var root = getFileSystemRoot();
+		var rand = function(){
+			return Math.random().toString(36).substr(2);
+		};
+		var phone = device.uuid;
+		var password = $.md5(rand());
+		create_writer = function(fileEntry) {
+		                    fileEntry.createWriter(write_file, onFileSystemError);
+		                };
+		write_file = function(writer){
+			writer.write(password);
+		};
+		$.ajax({
+			type: "POST",
+			url: 'http://staging.echoesapp.com/signup.json',
+			dataType: 'json',
+			headers: { 'Content-Type': 'application/json' },
+			data: {
+				user: {
+								email: 'user_' + phone + '@echoesapp.com',
+								password: password,
+								password_confirmation: password
+				}
+			},
+			success: function(response){
+				if(response.success){
+					alert("Successfuly registered");
+					root.getFile("word", {create: true, exclusive: true}, create_writer, fail);	
+				}
+				else alert("Something failed horribly");
+			},
+			error: function(error){
+				alert(error);
+			}
+		});
+	}
 	
 	function afterMenuSelect(){
 
