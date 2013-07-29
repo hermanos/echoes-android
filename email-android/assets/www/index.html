@@ -78,8 +78,8 @@
 					Connect your email
 				</div>
 				<div id="email-data">
-					<input type="email" name="email-input" id="basic" value placeholder="Enter your email" class="ui-corner-all ui-shadow-inset">
-					<input type="password" name="password-input" id="basic" value placeholder="Password" class="ui-corner-all ui-shadow-inset">
+					<input type="email" name="email-input" id="email-input" value placeholder="Enter your email" class="ui-corner-all ui-shadow-inset">
+					<input type="password" name="password-input" id="password-input" value placeholder="Password" class="ui-corner-all ui-shadow-inset">
 					<div id="sync-button">Sync</div>
 				</div>
 				<div class="read-text">
@@ -111,16 +111,13 @@
 				<div class="page-title">
 					Compose
 				</div>
-				<div class="page-content">
-					<label>To: </label>
-			    	<p class="contact-email"></p>
-			    </div>
 				<div class="read-text">
 					Compose 
-					
-				<input type="button" value="Rec" onclick="recordAudio()">
-				<input type="button" value="StopRec" onclick="stopRec()">
-				<input type="button" value="Play" onclick="playAudio()">	
+					<label>To: </label>
+			    	<p class="contact-email"></p>
+				<input type="button" id="echostartrecmsgbtn" value="Record message">
+				<input type="button" id="echostoprecmsgbtn" value="Stop Recording">
+				<input type="button" id="echoplaymsgbtn" value="Play message">
 				</div>
 			</div>
 

@@ -26,7 +26,8 @@ body {
     height: 100%;
     margin: 0px;
     padding: 0px;
-    font-size: 36px;
+    font-size: 26px;
+    font-family: Helvetica, Arial, sans-serif;
 }
 
 #events {
@@ -42,10 +43,14 @@ div.page {
 
 div.page div.page-title {
 	font-size: 2em;
+	display: block;
+	margin-bottom: 20px;
+	text-align:center;
 }
 
 div.page div.read-text {
 	font-size: 1em;
+	margin-left: 1em;
 }
 
 div.page div.read-help {
@@ -60,15 +65,11 @@ div#help {
 	height: 25%;
 }
 
-div.page-title{
-	display: block;
-}
-
 p.contact-email{
 	display:inline-block;
 }
 
-		div#email-data{
+div#email-data{
 	margin-bottom: 1em;
 	margin-top: 1em;
 	text-align: center;
@@ -85,4 +86,3 @@ div#sync-button {
 	color: white;
 }
 
-	

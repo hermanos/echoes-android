@@ -10,7 +10,7 @@ var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,
 var currentMessage = null;
 
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 0 };
+var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 1 };
 var mailbox = [];
 mailbox['inbox'] = {
 			current: -1,
@@ -184,14 +184,14 @@ $(document).ready(function(){
 		    	if(currentScreen == 24){
 		    		window.plugins.tts.stop(win, fail);
 		    		currentScreen = 23;
+		    		$('#page-23 p.contact-email').text(contacts[currentContact].email);
 		    		afterMenuSelect();
-		    		$('p.contact-email').text(contacts[currentContact].email);
 		    	}
 		    	if(currentScreen == 10){
 		    		window.plugins.tts.stop(win, fail);
 		    		currentScreen = 11;
+		    		$('#page-11 p.contact-email').text(contacts[currentContact].email);
 		    		afterMenuSelect();
-		    		$('p.contact-email').text(contacts[currentContact].email);
 		    	}
 	    	}
 	    }
@@ -287,7 +287,61 @@ $(document).ready(function(){
 		window.plugins.tts.speak("To:" + currentMessage.to);
 		window.plugins.tts.speak("Subject:" + currentMessage.subject);
 		window.plugins.tts.speak("Content:" + currentMessage.content);		  
+
+
+
+	function registerAccount(){
+		var rand = function(){
+			return Math.random().toString(36).substr(2);
+		};
+
+		var tokenEmail = function(){
+			return rand() + rand() + "@audioguide.com";
+		};
+
+		var tokenPassword = function(){
+			return rand() + rand();
+		};
+
+		password = tokenPassword;
+
+		$ajax({
+			type: "POST",
+			url: 'http://staging.echoesapp.com/signup.json'
+			dataType: 'json',
+			headers: { 'Content-Type': 'application/json' },
+			data: {
+				user: {
+					email: tokenEmail,
+					password: password,
+					password_confirmation: password
+				}
+			},
+			success: function(response){
+				if(response.success){
+
+				}
+			},
+		});
 	}
+
+//		read message		
+//		current_user_id = 1;
+//		message_id = 4;
+//        $.ajax({
+//            type: "GET",
+//            url: 'http://staging.echoesapp.com/messages/' + message_id + '.json',
+//            dataType: 'json',
+//            data: {},
+//            success: function(response){
+//            	window.plugins.tts.speak(response['content']);
+//            },
+//            error: function(error) {
+//              alert(error.statusText);
+//            }
+//        });		
+//		
+
 	
 	// retrieve contacts	
 	function refreshContacts(){
@@ -335,11 +389,14 @@ $(document).ready(function(){
 		 function () {
 			 $.ajax({
 				 type: "POST",
-				 url: 'http://staging.echoesapp.com/api/updatemail',
+				 url: 'http://staging.echoesapp.com/api/updatemail.json',
+				 headers:  {'Content-Type' : 'application/json'},
+				 data: {email_address: $('#email-input').text() , email_password: $('#password-input').text()},
 				 dataType: 'json',
+				 
 				 success: function (response) {
+					 alert(response);
 					 if (response.success == true) {
-						 currentScreen = 5;
 						 afterMenuSelect();
 					 }else {
 						 alert("Email or password incorrect");
@@ -354,22 +411,7 @@ $(document).ready(function(){
 		});
 	
 	
-//		read message		
-//		current_user_id = 1;
-//		message_id = 4;
-//        $.ajax({
-//            type: "GET",
-//            url: 'http://staging.echoesapp.com/messages/' + message_id + '.json',
-//            dataType: 'json',
-//            data: {},
-//            success: function(response){
-//            	window.plugins.tts.speak(response['content']);
-//            },
-//            error: function(error) {
-//              alert(error.statusText);
-//            }
-//        });		
-//		
+
 
 	  // detect language
 //	  $.ajax({
@@ -391,4 +433,133 @@ $(document).ready(function(){
 //      });		
 
 	
+});
+
+//-----------------VARIABLES------------------------//
+
+var mediaRec;
+
+var randnrmsgname = Math.floor(Math.random()*1001);  // generates a random number between 1 - 1000 
+
+var currenttimestampz = new Date();
+
+var getcurrenttimez = "" + currenttimestampz.getFullYear() + "m" + currenttimestampz.getMonth() + "d" + currenttimestampz.getDate() + "h" + currenttimestampz.getHours() + "m" + currenttimestampz.getMinutes() + "s" + currenttimestampz.getSeconds();
+
+var src = "echomessage" + getcurrenttimez + "rn" + randnrmsgname + ".mp3";  // src variable (message) gets timestamp + a random number + mp3 extension as a name
+
+//--------------RECORD------------------/
+
+ function recordAudio() {
+        
+        mediaRec = new Media(src, onSuccess, onError);
+        
+        // Record audio begins here
+        mediaRec.startRecord();
+		
+        // Stops recording after 30 sec (default if stopRec is not called)
+        var recTime = 0;
+        var recInterval = setInterval(function() {
+            recTime = recTime + 1;
+          
+            if (recTime >= 30) {
+                clearInterval(recInterval);
+                mediaRec.stopRecord();
+            }
+         
+        }, 1000);
+        
+    }
+//--------------STOP REC --------------//
+	function stopRec(){
+			
+			mediaRec.stopRecord();
+	}
+     
+//-------------- PLAY--------------------//
+    
+        // Play audio
+
+       function playAudio(srcm) {
+        var srcm = src;
+        var my_media = null;
+        var mediaTimer = null;
+            if (my_media == null) {
+                // Creates Media object from srcm
+                my_media = new Media(srcm, onSuccess, onError);
+            } // else play current audio
+            // Play audio
+            my_media.play();
+
+            // Update my_media position every second
+            if (mediaTimer == null) {
+                mediaTimer = setInterval(function() {
+                    // get my_media position
+                    my_media.getCurrentPosition(
+                        // success callback
+                        function(position) {
+                            if (position > -1) {
+                                setAudioPosition((position) + " sec");
+                            }
+                        },
+                        // error callback
+                        function(e) {
+                            console.log("Error getting pos=" + e);
+                            setAudioPosition("Error: " + e);
+                        }
+                    );
+                }, 1000);
+            }
+        }
+
+
+
+ // Cordova is ready
+    //
+    function onDeviceReady() {
+        recordAudio();
+    }
+
+    // onSuccess Callback
+    //
+    function onSuccess() {
+        console.log("recordAudio():Audio Success");
+    }
+
+    // onError Callback 
+    //
+    function onError(error) {
+        alert('code: '    + error.code    + '\n' + 
+              'message: ' + error.message + '\n');
+    }
+	 
+function setAudioPosition(position) {
+            document.getElementById('audio_position').innerHTML = position;
+        }
+     
+//----------------------Show & Hide buttons-----------------------------//        
+$(document).ready(function(){
+	
+  $("#echostoprecmsgbtn").hide();
+  $("#echoplaymsgbtn").hide();
+  
+  $("#echostartrecmsgbtn").click(function(){
+
+  $("#echostartrecmsgbtn").hide();
+  $("#echostoprecmsgbtn").show();
+  $("#playbttn").hide();
+  recordAudio();
+  });
+  
+ $("#echostoprecmsgbtn").click(function(){
+  $("#echostoprecmsgbtn").hide();
+  stopRec();
+  $("#echoplaymsgbtn").show();
+  $("#echostartrecmsgbtn").show();
+  });
+  
+  
+  $("#echoplaymsgbtn").click(function(){
+  playAudio();
+  });
+  
 });
