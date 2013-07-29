@@ -539,27 +539,25 @@ function setAudioPosition(position) {
 //----------------------Show & Hide buttons-----------------------------//        
 $(document).ready(function(){
 	
-  $("#echostoprecmsgbtn").hide();
-  $("#echoplaymsgbtn").hide();
+  $("#stop-record").hide();
+  $("#play-button").hide();
   
-  $("#echostartrecmsgbtn").click(function(){
-
-  $("#echostartrecmsgbtn").hide();
-  $("#echostoprecmsgbtn").show();
-  $("#playbttn").hide();
-  recordAudio();
+  $("#start-record").click(function(){
+	  $("#start-record").hide();
+	  $("#stop-record").show();
+	  $("#play-button").hide();
+	  recordAudio();
   });
   
- $("#echostoprecmsgbtn").click(function(){
-  $("#echostoprecmsgbtn").hide();
-  stopRec();
-  $("#echoplaymsgbtn").show();
-  $("#echostartrecmsgbtn").show();
+  $("#record-button").click(function(){
+	  $("#stop-record").hide();
+	  stopRec();
+	  $("#play-button").show();
+	  $("#start-record").show();
   });
   
-  
-  $("#echoplaymsgbtn").click(function(){
-  playAudio();
+  $("#play-button").click(function(){
+	  playAudio();
   });
   
 });
