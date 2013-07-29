@@ -16,14 +16,12 @@
 		<script type="text/javascript" src="js/jquery.touchswipe.min.js"></script>
 		<script type="text/javascript" src="js/cordova.js"></script>
 		<script type="text/javascript" src="js/tts.js"></script>
+		<script type="text/javascript" src="js/tts-functions.js"></script>
 		<script type="text/javascript" src="js/main.js"></script>
 		<script type="text/javascript" src="js/index.js"></script>
-		<script type="text/javascript">
-			app.initialize();
-		</script>
 	</head>
 
-	<body onload="init();closeSplash();">
+	<body onload="init();navigator.splashscreen.hide();">
 		
 		<div id="events" data-xthreshold="200" data-ythreshold="200">
 			<div id="help">

@@ -1,21 +1,3 @@
-function startupWin(result) {
-    if (result == TTS.STARTED) {
-        window.plugins.tts.speak("Echoes!");
-    }
-}
-function ChangeLanguageWin(result) {
-//    window.plugins.tts.speak("bongiorno italia");
-}
-function fail(result) {
-    alert("TTS Startup failure = " + result);
-}
-function win(result) {
-}
-
-function closeSplash(){
-	navigator.splashscreen.hide();
-}
-
 //00-splash,    01-tutorial1, 02-tutorial2,    03-tutorial3, 04-add email, 05-sync
 //              11-compose,   12-inbox,        13-sent,      14-trash,     15-archive, 16-settings
 //20-reply all, 21-reply,     22-read message, 23-forward 	 24-contacts
