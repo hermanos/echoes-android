@@ -36,6 +36,8 @@
 					How about listening the tutorial and start configuring your account?
 					Swipe to the left to continue with the tutorial!
 				</div>
+				<div class="read-help">
+				</div>
 			</div> 
 
 			<div class="page" id="page-1">
@@ -46,6 +48,8 @@
 					Good job! To navigate through the screens, just swipe left or right.
 					Your phone will read for you the current screen title.
 					For example, you can swipe right to go to the previous screen, or just swipe left to continue the tutorial.
+				</div>
+				<div class="read-help">
 				</div>
 			</div> 
 
@@ -59,6 +63,8 @@
 					Available gestures are: tap, long tap, swipe up or swipe down.
 					When you are done, swipe left to listen the last tutorial page.
 				</div>
+				<div class="read-help">
+				</div>
 			</div> 
 
 			<div class="page" id="page-3"
@@ -71,21 +77,24 @@
 					For visually impaired or people with low vision, make sure you are visually assisted.
 					Swipe left to connect your account.    
 				</div>
+				<div class="read-help">
+				</div>
 			</div> 
 
 			<div class="page" id="page-4">
 				<div class="page-title">
 					Connect your email
 				</div>
+				<div class="read-text">
+					Enter your email credentials, then swipe left to connect Echoes to your email.
+				</div>
+				<div class="read-help">
+				</div>
 				<div id="email-data">
 					<input type="email" name="email-input" id="email-input" value placeholder="Enter your email" class="ui-corner-all ui-shadow-inset">
 					<input type="password" name="password-input" id="password-input" value placeholder="Password" class="ui-corner-all ui-shadow-inset">
 					<div id="sync-button">Sync</div>
 				</div>
-				<div class="read-text">
-					Enter your email credentials, then swipe left to connect Echoes to your email.
-				</div>
-				
 			</div>
 			
 			<div class="page" id="page-10">
@@ -94,6 +103,8 @@
 				</div>
 				<div class="read-text">
 					Contacts
+				</div>
+				<div class="read-help">
 				</div>
 			</div>
 
@@ -105,6 +116,8 @@
 					Usually this takes about 30 seconds. Please wait while synchronizing.
 					You'll be in your inbox in no-time. 
 				</div>
+				<div class="read-help">
+				</div>
 			</div>
 
 			<div class="page" id="page-11">
@@ -113,11 +126,15 @@
 				</div>
 				<div class="read-text">
 					Compose 
+				</div>
+				<div class="controls">
 					<label>To: </label>
 			    	<p class="contact-email"></p>
-				<input type="button" id="echostartrecmsgbtn" value="Record message">
-				<input type="button" id="echostoprecmsgbtn" value="Stop Recording">
-				<input type="button" id="echoplaymsgbtn" value="Play message">
+					<input type="button" id="start-record" value="Record message">
+					<input type="button" id="stop-record" value="Stop Recording">
+					<input type="button" id="play-button" value="Play message">
+				</div>
+				<div class="read-help">
 				</div>
 			</div>
 
@@ -142,6 +159,8 @@
 				<div class="read-text">
 					Sent 
 				</div>
+				<div class="read-help">
+				</div>
 			</div>
 
 			<div class="page" id="page-14">
@@ -150,6 +169,8 @@
 				</div>
 				<div class="read-text">
 					Trash 
+				</div>
+				<div class="read-help">
 				</div>
 			</div>
 
@@ -160,6 +181,8 @@
 				<div class="read-text">
 					Archive
 				</div>
+				<div class="read-help">
+				</div>
 			</div>
 
 			<div class="page" id="page-16">
@@ -168,6 +191,8 @@
 				</div>
 				<div class="read-text">
 					Settings
+				</div>
+				<div class="read-help">
 				</div>
 			</div>
 
@@ -178,6 +203,8 @@
 				<div class="read-text">
 					Reply all
 				</div>
+				<div class="read-help">
+				</div>
 			</div>
 
 			<div class="page" id="page-21">
@@ -186,6 +213,8 @@
 				</div>
 				<div class="read-text">
 					Reply
+				</div>
+				<div class="read-help">
 				</div>
 			</div>
 
@@ -196,19 +225,23 @@
 				<div class="read-text">
 					Read message
 				</div>
+				<div class="read-help">
+				</div>
 			</div>
 
 			<div class="page" id="page-23">
 				<div class="page-title">
 					Forward
 				</div>
+				<div class="read-text">
+					Forward
+				</div>
+				<div class="read-help">
+				</div>
 				<div class="page-content">
 					<label>To: </label>
 			    	<p class="contact-email"></p>
 			    </div>
-				<div class="read-text">
-					Forward
-				</div>
 			</div>
 
 			<div class="page" id="page-24">
@@ -217,6 +250,8 @@
 				</div>
 				<div class="read-text">
 					Contacts
+				</div>
+				<div class="read-help">
 				</div>
 			</div>
 			

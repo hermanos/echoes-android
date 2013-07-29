@@ -7,8 +7,6 @@ var menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,
              'contacts-compose', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '', 
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
-var currentMessage = null;
-
 // stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
 var currentUser = { id: 1, name: 'Barrack Obama', language: 'en', stage: 1 };
 var mailbox = [];
@@ -168,7 +166,6 @@ $(document).ready(function(){
 
 	    		if (mailbox['inbox'].messages.length > 0){
 					currentScreen = 22;
-					currentMessage = mailbox['inbox'].messages[mailbox['inbox'].current];
 					afterMenuSelect();
 				} else {
 					window.plugins.tts.speak('No messages. Refresh messages with long tap.');
@@ -306,7 +303,6 @@ $(document).ready(function(){
 	
 	function afterMessageSelect(){
 		if ([12,13,14,15].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
-			currentMessage = mailbox['inbox'].messages[mailbox['inbox'].current];
 			window.plugins.tts.speak('' + mailbox['inbox'].messages.length + ' messages. message ' + mailbox['inbox'].current);
 			window.plugins.tts.speak(mailbox['inbox'].messages[mailbox['inbox'].current].subject);
 		}
@@ -327,9 +323,7 @@ $(document).ready(function(){
             	mailbox['inbox'].messages = [];
             	mailbox['inbox'].current = -1;
             	response.forEach(function(element, index, array) {
-//            		 mailbox['inbox'].messages.push(element);
-            		 mailbox[element['folder']].messages.push(element);
-            		
+            		 mailbox[element['folder']].messages.push(element);            		
             	});
         		if (mailbox['inbox'].messages.length > 0){
         			mailbox['inbox'].current = 0;
@@ -343,10 +337,10 @@ $(document).ready(function(){
 	}
 	
 	function readCurrentMessage(){
-		window.plugins.tts.speak("From:" + currentMessage.from);
-		window.plugins.tts.speak("To:" + currentMessage.to);
-		window.plugins.tts.speak("Subject:" + currentMessage.subject);
-		window.plugins.tts.speak("Content:" + currentMessage.content);		  
+		window.plugins.tts.speak("From:" + mailbox['inbox'].messages[mailbox['inbox'].current].from);
+		window.plugins.tts.speak("To:" + mailbox['inbox'].messages[mailbox['inbox'].current].to);
+		window.plugins.tts.speak("Subject:" + mailbox['inbox'].messages[mailbox['inbox'].current].subject);
+		window.plugins.tts.speak("Content:" + mailbox['inbox'].messages[mailbox['inbox'].current].content);		  
 
 	}
 
@@ -434,30 +428,7 @@ $(document).ready(function(){
 				 }
 			 });
 		});
-	
-	
 
-
-	  // detect language
-//	  $.ajax({
-//          type: "GET",
-//          url: 'http://ws.detectlanguage.com/0.2/detect', 
-//          dataType: 'json',
-//          data: {
-//          	q: encodeURIComponent(mailbox['inbox'].messages[mailbox['inbox'].current].subject + ' ' + mailbox['inbox'].messages[mailbox['inbox'].current].content),
-//          	key: '54eead2bd73d8072e015059bf234b645'
-//          },
-//          success: function(response){
-//      		window.plugins.tts.speak('language: ' + response.data.detections[0].language);
-//	  			// aici trebuie echivalata limba detectata cu una din familiile suportate de android
-//      		window.plugins.tts.setLanguage(response.data.detections[0].language, ChangeLanguageWin, fail);
-//          },
-//          error: function(error) {
-////          	window.plugins.tts.speak('error: ' + error.statusText);
-//          }
-//      });		
-
-	
 });
 
 //-----------------VARIABLES------------------------//
@@ -562,27 +533,24 @@ function setAudioPosition(position) {
         }
      
 //----------------------Show & Hide buttons-----------------------------//        
-$(document).ready(function(){
-	
-  $("#stop-record").hide();
-  $("#play-button").hide();
+$(document).ready(function(){  
+
+	$("#start-record").click(function(){
+		$("#start-record").hide();
+		$("#stop-record").show();
+		$("#play-button").hide();
+		recordAudio();
+	});
   
-  $("#start-record").click(function(){
-	  $("#start-record").hide();
-	  $("#stop-record").show();
-	  $("#play-button").hide();
-	  recordAudio();
-  });
+	$("#record-button").click(function(){
+		$("#stop-record").hide();
+		stopRec();
+		$("#play-button").show();
+		$("#start-record").show();
+	});
   
-  $("#record-button").click(function(){
-	  $("#stop-record").hide();
-	  stopRec();
-	  $("#play-button").show();
-	  $("#start-record").show();
-  });
-  
-  $("#play-button").click(function(){
-	  playAudio();
-  });
-  
+	$("#play-button").click(function(){
+		playAudio();
+	});
+
 });
