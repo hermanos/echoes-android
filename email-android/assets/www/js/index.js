@@ -20,7 +20,7 @@ var root;
 
 document.addEventListener("deviceready", onDeviceReady, false);
 
-function onDeviceReady(){
+function onDeviceReady() {
 	
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
@@ -164,9 +164,9 @@ function onDeviceReady(){
 	function afterMenuSelect(){
 
 		if (currentScreen == 0){
-			// TODO: login and set currentUser variable
-			registerAccount();
-			
+		 // TODO: login/register account and set currentUser variable, scris parola pe SD
+		    registerAccount();
+
 			if (currentUser.stage == 1){
 				currentScreen = 4;
 				afterMenuSelect();
@@ -197,7 +197,7 @@ function onDeviceReady(){
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
-			// poate polling getStage si daca e 3 atunci:
+			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
 			//			currentUser.stage = 3;
 		}
@@ -205,6 +205,7 @@ function onDeviceReady(){
 		$('.page').hide();
 		$('#page-' + currentScreen).show();
 		$('#status').html(currentScreen);
+		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
 		window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
 		
 		if (currentScreen == 22){
@@ -213,11 +214,22 @@ function onDeviceReady(){
 		}
 	}
 
-	// TODO: adaptarea functiei pentru toate folderele
 	function afterMessageSelect(){
-		if ([12,13,14,15].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
-			window.plugins.tts.speak('' + mailbox['inbox'].messages.length + ' messages. message ' + mailbox['inbox'].current);
+		if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+			window.plugins.tts.speak('' + mailbox['inbox'].messages.length + ' emails. email ' + mailbox['inbox'].current);
 			window.plugins.tts.speak(mailbox['inbox'].messages[mailbox['inbox'].current].subject);
+		}
+		if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
+			window.plugins.tts.speak('' + mailbox['sent'].messages.length + ' emails. email ' + mailbox['sent'].current);
+			window.plugins.tts.speak(mailbox['sent'].messages[mailbox['sent'].current].subject);
+		}
+		if ([14].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
+			window.plugins.tts.speak('' + mailbox['trash'].messages.length + ' emails. email ' + mailbox['trash'].current);
+			window.plugins.tts.speak(mailbox['trash'].messages[mailbox['trash'].current].subject);
+		}
+		if ([15].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
+			window.plugins.tts.speak('' + mailbox['archive'].messages.length + ' emails. email ' + mailbox['archive'].current);
+			window.plugins.tts.speak(mailbox['archive'].messages[mailbox['archive'].current].subject);
 		}
 	}
 	
@@ -228,23 +240,38 @@ function onDeviceReady(){
 		$.ajax({
             type: "GET",
             // TODO: mesajele trebuie aduse din emails
-            url: 'http://staging.echoesapp.com/messages.json',
+            url: 'http://staging.echoesapp.com/emails.json',
             dataType: 'json',
             data: {
-            	// TODO: pentru toate apelurile ajax se va folosi TOKEN in loc de userid
-            	current_user: currentUser.id
+            	auth_token: currentUser.token
             },
             success: function(response){
-            	// TODO: se aduc mesajele din toate folderele
             	mailbox['inbox'].messages = [];
             	mailbox['inbox'].current = -1;
+            	mailbox['sent'].messages = [];
+            	mailbox['sent'].current = -1;
+            	mailbox['trash'].messages = [];
+            	mailbox['trash'].current = -1;
+            	mailbox['archive'].messages = [];
+            	mailbox['archive'].current = -1;
+            	
             	response.forEach(function(element, index, array) {
             		 mailbox[element['folder']].messages.push(element);            		
             	});
+            	
         		if (mailbox['inbox'].messages.length > 0){
         			mailbox['inbox'].current = 0;
-                	afterMessageSelect();
         		}
+        		if (mailbox['sent'].messages.length > 0){
+        			mailbox['sent'].current = 0;
+        		}
+        		if (mailbox['trash'].messages.length > 0){
+        			mailbox['trash'].current = 0;
+        		}
+        		if (mailbox['archive'].messages.length > 0){
+        			mailbox['archive'].current = 0;
+        		}
+        		afterMessageSelect();
             },
             error: function(error) {
             	window.plugins.tts.speak('error: ' + error.statusText);
@@ -254,10 +281,35 @@ function onDeviceReady(){
 	
 	// TODO: a se seta un parametru (mesaj) pe functia asta
 	function readCurrentMessage(){
-		window.plugins.tts.speak("From:" + mailbox['inbox'].messages[mailbox['inbox'].current].from);
-		window.plugins.tts.speak("To:" + mailbox['inbox'].messages[mailbox['inbox'].current].to);
-		window.plugins.tts.speak("Subject:" + mailbox['inbox'].messages[mailbox['inbox'].current].subject);
-		window.plugins.tts.speak("Content:" + mailbox['inbox'].messages[mailbox['inbox'].current].content);
+		if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0) {
+			inbox_email=mailbox['inbox'].messages[mailbox['inbox'].current];
+			window.plugins.tts.speak("From:" + inbox_email.from);
+			window.plugins.tts.speak("Subject:" + inbox_email.subject);
+			window.plugins.tts.speak("Content:" + inbox_email.content);
+		}
+		
+		if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0) {
+			sent_email=mailbox['sent'].messages[mailbox['sent'].current];
+			window.plugins.tts.speak("To:" + sent_email.to);
+			window.plugins.tts.speak("Subject:" + sent_email.subject);
+			window.plugins.tts.speak("Content:" + sent_email.content);
+		}
+
+		if ([14].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0) {
+			trash_email=mailbox['trash'].messages[mailbox['trash'].current];
+			window.plugins.tts.speak("From:" + trash_email.from);
+			window.plugins.tts.speak("To:" + trash_email.to);
+			window.plugins.tts.speak("Subject:" + trash_email.subject);
+			window.plugins.tts.speak("Content:" + trash_email.content);
+		}
+
+		if ([15].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0) {
+			archive_email=mailbox['archive'].messages[mailbox['archive'].current];
+			window.plugins.tts.speak("From:" + archive_email.from);
+			window.plugins.tts.speak("To:" + archive_email.to);
+			window.plugins.tts.speak("Subject:" + archive_email.subject);
+			window.plugins.tts.speak("Content:" + archive_email.content);
+		}
 	}
 	
 	// retrieve contacts	
@@ -269,8 +321,7 @@ function onDeviceReady(){
             url: 'http://staging.echoesapp.com/contacts.json',
             dataType: 'json',
             data: {
-            	// TODO: pentru toate apelurile ajax se va folosi TOKEN in loc de userid
-            	current_user: currentUser.id
+            	auth_token: currentUser.token
             },
             success: function(response){
             	contacts = [];
@@ -303,7 +354,7 @@ function onDeviceReady(){
 			url: 'http://staging.echoesapp.com/api/updatemail.json',
 			headers:  {'Content-Type' : 'application/json'},
 			data: {
-				// TODO: aici se mai adauga un token
+            	auth_token: currentUser.token,
 				email_address: $('#email-input').text(), 
 				email_password: $('#password-input').text()
 				},
