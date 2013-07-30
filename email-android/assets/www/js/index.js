@@ -109,21 +109,27 @@ function onDeviceReady() {
 		});
 	}
 	
-	function readAsText(f)
+	function gotFileEntry(fileEntry){
+        fileEntry.file(gotFile, readFail);
+    }
+	
+	function gotFile(file){
+        readAsText(file);
+    }
+    	
+	function readFile(f)
 	{
-	    alert("readAsText");
 	    var reader = new FileReader();
+	    alert("readAsText");
 	    reader.onloadend = function(evt){
 //	        password = evt.target.result;
 	        alert("OnLoadEnd: " + evt.target.result);
 	    };
 	    
-	    reader.readAsText(f.file);
-	    alert("exiting readAsText without doing shit");
+	    reader.readAsText(f);
 	}
 	
-	function readFail(e)
-	{
+	function readFail(e){
 	    alert("Read Error: " + e.target.error.code);
 	}
 	
@@ -132,7 +138,7 @@ function onDeviceReady() {
 		var phone = device.uuid;		
 		var password;
 		
-		root.getFile("echoesapp.jpg", null, readAsText, readFail);
+		root.getFile("echoesapp.jpg", null, readFile, readFail);
 		alert("Password:" + password);
 		
 		$.ajax({
