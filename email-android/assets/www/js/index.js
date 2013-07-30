@@ -6,7 +6,7 @@ var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
 //stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '' };
+var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '', uuid: '', password: '', username: '' };
 
 var mailbox = [];
 mailbox['inbox']   = { current: -1, messages: [] };
@@ -16,7 +16,7 @@ mailbox['trash']   = { current: -1, messages: [] };
 
 var contacts = [], currentContact = -1;
 var mediaRec;
-var root;
+var root, passwordSaved = false;
 
 document.addEventListener("deviceready", onDeviceReady, false);
 
@@ -25,9 +25,14 @@ function onDeviceReady() {
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
+
 	// initialize LocalStorage
 	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, onFileSystemError);
-		
+	
+	// initialize uuid
+	currentUser.uuid = device.uuid;	
+	currentUser.username = "user_" + currentUser.uuid + "@echoesapp.com";
+
 	afterMenuSelect();
 	
 	// gestures handlers
@@ -46,39 +51,60 @@ function onDeviceReady() {
 	    }
 	});
 
-	function gotFS(fileSystem){
-				root = fileSystem.root;
-			}
-
-	function onFileSystemError(error){
-		console.log("FileSystemError: " + error);
-	}
-
-	function rand(){
-		return Math.random().toString(36).substr(2);
-	};
-
-	function registerAccount(){
-		var phone = device.uuid;
-		var fileExists;
-		var password;
-		alert(root);
-		root.getFile("echoesapp.jpg", {create: false}, function(){ fileExists = true; }, function(){ fileExists = false; });
-		alert("File Exists:" + fileExists);
-		if(fileExists){
-			alert("intra pe login");
-			login();
+	
+	
+	
+	
+	
+	
+	
+	
+	function authenticateUser() {
+		root.getFile("echoesapp.jpg", 
+			{ create: false }, 
+			function() { passwordSaved = true; }, 
+			function() { passwordSaved = false; }
+		);
+		
+		if (passwordSaved) {
+			loginUser();
+		} else {
+			registerUser();
 		}
-		else
-			password = rand();
+	}
+	
+	
 
-		alert(password);
+	
+	
+	
+	function loginUser(){
+		root.getFile("echoesapp.jpg", 
+			{
+				create: false, 
+				exclusive: false
+			}, 
+			loadPassword, 
+			loadPasswordFail
+		);
+	}
+	
+	
+	
+		
+	
+	
+	
+	function registerUser(){
+		currentUser.password = Math.random().toString(36).substr(2);
+
 		create_writer = function(fileEntry) {
 		  fileEntry.createWriter(write_file, onFileSystemError);
 		};
-		write_file = function(writer){
+		write_file = function(writer) {
 			writer.write(password);
 		};
+		
 		alert("inainte de ajax");
 		$.ajax({
 			type: "POST",
@@ -86,22 +112,24 @@ function onDeviceReady() {
 			dataType: 'json',
 			data: {
 				user: {
-								email: "user_" + phone + "t@echoesapp.com",
-								password: password,
-								password_confirmation: password
+					email: currentUser.username,
+					password: currentUser.password,
+					password_confirmation: currentUser.password
 				}
 			},
-			beforeSend: function(){
-				alert("Before Send");
-			},
-			success: function(response){
-				if(response.success){
+			success: function(response) {
+				if (response.success) {
 					alert("Successfuly registered");
-					root.getFile("echoesapp.jpg", {create: true, exclusive: true}, create_writer, fail);
+
+					root.getFile("echoesapp.jpg", 
+						{ create: true, exclusive: true }, 
+						create_writer, fail
+					);
 					currentUser.token = response.data.auth_token;
-					currentUser.stage = 1;	
+					currentUser.stage = response.data.stage;	
 				}
-				else alert("Something failed horribly");
+				else 
+					alert("Unable to run application.");
 			},
 			error: function(error){
 				alert("Error:" + error.statusText);
@@ -116,62 +144,76 @@ function onDeviceReady() {
 	function gotFile(file){
         readAsText(file);
     }
-    	
-	function readFile(f)
-	{
-	    var reader = new FileReader();
-	    alert("readAsText");
-	    reader.onloadend = function(evt){
-//	        password = evt.target.result;
-	        alert("OnLoadEnd: " + evt.target.result);
-	    };
-	    
-	    reader.readAsText(f);
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	function loadPassword(fileEntry) {
+	    fileEntry.file(readingPassword, loadPasswordFail);
 	}
 	
-	function readFail(e){
-	    alert("Read Error: " + e.target.error.code);
-	}
-	
-	function login(){
-	    alert("sunt in login");
-		var phone = device.uuid;		
-		var password;
-		
-		root.getFile("echoesapp.jpg", null, readFile, readFail);
-		alert("Password:" + password);
-		
-		$.ajax({
-			type: "POST",
-			url: 'http://staging.echoesapp.com/api/signin.json',
-			dataType: 'json',
-			data: { 
-								user: { email: "user_" + phone + "t@echoesapp.com",
-												password: password 
-											}
-						 },
-			success: function(response){
-				alert("intrat pe success");
-				if(response.success){
-					alert("Merge? wait wut");
-					currentUser.token = response.data.auth_token;
-					currentUser.stage = 1;
+	function readingPassword(file){
+		var reader = new FileReader();
+
+		reader.onloadend = function(evt) {
+            currentUser.password = evt.target.result;
+            
+            // login
+    		$.ajax({
+    			type: "POST",
+    			url: 'http://staging.echoesapp.com/api/signin.json',
+    			dataType: 'json',
+    			data: { 
+					user: { 
+						email: currentUser.username,
+						password: currentUser.password 
+					}
+				},
+				success: function(response) {
+					if (response.success) {
+						currentUser.token = response.data.auth_token;
+						currentUser.stage = response.data.stage;
+						alert(currentUser.token);
+					}
+					else
+						alert("Authentication error");
+				},
+				error: function(error) {
+					alert(error.statusText);
 				}
-				else
-					alert("HA, n-ai cum");
-			},
-			error: function(error){
-				alert(error.statusText);
-			}
-		});
-		alert("gata login, nu cred ca merge");
+    		});
+        };
+        
+        reader.readAsText(file);
+	 }
+	
+	function loadPasswordFail(e){
+	    alert("Load Password Fail. Error: " + e.target.error.code);
 	}
+		
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	function afterMenuSelect(){
 
 		if (currentScreen == 0){
-		 // TODO: login/register account and set currentUser variable, scris parola pe SD
-		    registerAccount();
+			authenticateUser();
 
 			if (currentUser.stage == 1){
 				currentScreen = 4;
@@ -192,7 +234,6 @@ function onDeviceReady() {
 
 		if (currentScreen == 4){
 			if (currentUser.stage == 0){
-				// TODO: save currentUser.stage = 1 (tutorial finished)
 				currentUser.stage = 1;
 			}
 			if (currentUser.stage == 2){
@@ -252,14 +293,10 @@ function onDeviceReady() {
             	auth_token: currentUser.token
             },
             success: function(response){
-            	mailbox['inbox'].messages = [];
-            	mailbox['inbox'].current = -1;
-            	mailbox['sent'].messages = [];
-            	mailbox['sent'].current = -1;
-            	mailbox['trash'].messages = [];
-            	mailbox['trash'].current = -1;
-            	mailbox['archive'].messages = [];
-            	mailbox['archive'].current = -1;
+            	mailbox['inbox']   = { current: -1, messages: [] };
+            	mailbox['sent']    = { current: -1, messages: [] };
+            	mailbox['archive'] = { current: -1, messages: [] };
+            	mailbox['trash']   = { current: -1, messages: [] };
             	
             	response.forEach(function(element, index, array) {
             		 mailbox[element['folder']].messages.push(element);            		
@@ -358,7 +395,6 @@ function onDeviceReady() {
 		$.ajax({
 			type: "POST",
 			url: 'http://staging.echoesapp.com/api/updatemail.json',
-			headers:  {'Content-Type' : 'application/json'},
 			data: {
             	auth_token: currentUser.token,
 				email_address: $('#email-input').text(), 
@@ -403,7 +439,15 @@ function onDeviceReady() {
 	
 	
 	
-	
+	// CALLBACKS
+	function gotFS(fileSystem) {
+		root = fileSystem.root;
+	}
+
+	function onFileSystemError(error){
+		alert("init: FileSystemError: " + error);
+	}
+
 	
 	// GESTURES CALLBACKS
 	function swipeCustomCallback(event, direction, distance, duration, fingerCount) {
