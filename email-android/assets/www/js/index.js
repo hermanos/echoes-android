@@ -331,8 +331,6 @@ function onDeviceReady() {
 	
 	
 	
-	
-	
 	// GESTURES CALLBACKS
 	function swipeCustomCallback(event, direction, distance, duration, fingerCount) {
 		previousScreen = currentScreen;
@@ -456,7 +454,21 @@ function onDeviceReady() {
 	
 	
 	function doubleTapCustomCallback(event, target) {
-		window.plugins.tts.speak('double tap');
+			if(currentUser.language == 'en'){
+				 window.plugins.tts.isLanguageAvailable("it", function(){
+		        	 window.plugins.tts.setLanguage("it");
+		        },fail);
+				window.plugins.tts.stop(win, fail);
+				window.plugins.tts.speak("change language to italian");			 
+			}
+			if(currentUser.language== 'it'){
+				 window.plugins.tts.isLanguageAvailable("en", function(){
+					 window.plugins.tts.setLanguage("en");
+		        },fail);
+				window.plugins.tts.stop(win, fail);
+				window.plugins.tts.speak("change language to english");
+			}
+		}
     }
 	
 	
@@ -494,4 +506,8 @@ function onDeviceReady() {
 	}
 	// END GESTURES CALLBACKS
 
+	function fail() {
+		
+	}
+	
 }
