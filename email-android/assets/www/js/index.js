@@ -6,7 +6,7 @@ var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
 //stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 0, name: '', language: 'en', stage: 0 };
+var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '' };
 
 var mailbox = [];
 mailbox['inbox']   = { current: -1, messages: [] };
@@ -16,15 +16,18 @@ mailbox['trash']   = { current: -1, messages: [] };
 
 var contacts = [], currentContact = -1;
 var mediaRec;
+var root;
 
+document.addEventListener("deviceready", onDeviceReady, false);
 
-
-
-$(document).ready(function(){
+function onDeviceReady(){
 	
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
+	// initialize LocalStorage
+	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, onFileSystemError);
+		
 	afterMenuSelect();
 	
 	// gestures handlers
@@ -43,66 +46,126 @@ $(document).ready(function(){
 	    }
 	});
 
-	var getFileSystemRoot = function(){
-		var root;
-
-		var init = function(){
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem){
+	function gotFS(fileSystem){
 				root = fileSystem.root;
-			}, onFileSystemError);
-		};
-
-		return function(){
-			return root
-		};
-	};
+			}
 
 	function onFileSystemError(error){
-		console.log("FileSystemError" + error);
+		console.log("FileSystemError: " + error);
 	}
 
+	function rand(){
+		return Math.random().toString(36).substr(2);
+	};
+
 	function registerAccount(){
-		var root = getFileSystemRoot();
-		var rand = function(){
-			return Math.random().toString(36).substr(2);
-		};
 		var phone = device.uuid;
-		var password = $.md5(rand());
+		var fileExists;
+		var password;
+		alert(root);
+		root.getFile("echoesapp.jpg", {create: false}, function(){ fileExists = true; }, function(){ fileExists = false; });
+		alert("File Exists:" + fileExists);
+		if(fileExists){
+			alert("intra pe login");
+			login();
+		}
+		else
+			password = rand();
+
+		alert(password);
 		create_writer = function(fileEntry) {
-		                    fileEntry.createWriter(write_file, onFileSystemError);
-		                };
+		  fileEntry.createWriter(write_file, onFileSystemError);
+		};
 		write_file = function(writer){
 			writer.write(password);
 		};
+		alert("inainte de ajax");
 		$.ajax({
 			type: "POST",
-			url: 'http://staging.echoesapp.com/signup.json',
+			url: 'http://staging.echoesapp.com/api/signup.json',
 			dataType: 'json',
-			headers: { 'Content-Type': 'application/json' },
 			data: {
 				user: {
-								email: 'user_' + phone + '@echoesapp.com',
+								email: "user_" + phone + "t@echoesapp.com",
 								password: password,
 								password_confirmation: password
 				}
 			},
+			beforeSend: function(){
+				alert("Before Send");
+			},
 			success: function(response){
 				if(response.success){
 					alert("Successfuly registered");
-					root.getFile("word", {create: true, exclusive: true}, create_writer, fail);	
+					root.getFile("echoesapp.jpg", {create: true, exclusive: true}, create_writer, fail);
+					currentUser.token = response.data.auth_token;
+					currentUser.stage = 1;	
 				}
 				else alert("Something failed horribly");
 			},
 			error: function(error){
-				alert(error);
+				alert("Error:" + error.statusText);
 			}
 		});
+	}
+	
+	function readAsText(f)
+	{
+	    alert("readAsText");
+	    var reader = new FileReader();
+	    reader.onloadend = function(evt){
+//	        password = evt.target.result;
+	        alert("OnLoadEnd: " + evt.target.result);
+	    };
+	    
+	    reader.readAsText(f.file);
+	    alert("exiting readAsText without doing shit");
+	}
+	
+	function readFail(e)
+	{
+	    alert("Read Error: " + e.target.error.code);
+	}
+	
+	function login(){
+	    alert("sunt in login");
+		var phone = device.uuid;		
+		var password;
+		
+		root.getFile("echoesapp.jpg", null, readAsText, readFail);
+		alert("Password:" + password);
+		
+		$.ajax({
+			type: "POST",
+			url: 'http://staging.echoesapp.com/api/signin.json',
+			dataType: 'json',
+			data: { 
+								user: { email: "user_" + phone + "t@echoesapp.com",
+												password: password 
+											}
+						 },
+			success: function(response){
+				alert("intrat pe success");
+				if(response.success){
+					alert("Merge? wait wut");
+					currentUser.token = response.data.auth_token;
+					currentUser.stage = 1;
+				}
+				else
+					alert("HA, n-ai cum");
+			},
+			error: function(error){
+				alert(error.statusText);
+			}
+		});
+		alert("gata login, nu cred ca merge");
 	}
 	
 	function afterMenuSelect(){
 
 		if (currentScreen == 0){
 			// TODO: login and set currentUser variable
+			registerAccount();
 			
 			if (currentUser.stage == 1){
 				currentScreen = 4;
@@ -446,4 +509,4 @@ $(document).ready(function(){
 	}
 	// END GESTURES CALLBACKS
 
-});
+}
