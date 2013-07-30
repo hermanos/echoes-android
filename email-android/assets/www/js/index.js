@@ -16,13 +16,18 @@ mailbox['trash']   = { current: -1, messages: [] };
 
 var contacts = [], currentContact = -1;
 var mediaRec;
+var root;
 
 document.addEventListener("deviceready", onDeviceReady, false);
+
 function onDeviceReady() {
 	
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
+	// initialize LocalStorage
+	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, onFileSystemError);
+		
 	afterMenuSelect();
 	
 	// gestures handlers
@@ -41,67 +46,133 @@ function onDeviceReady() {
 	    }
 	});
 
-	var getFileSystemRoot = function(){
-		var root;
-
-		var init = function(){
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem){
+	function gotFS(fileSystem){
 				root = fileSystem.root;
-			}, onFileSystemError);
-		};
-
-		return function(){
-			return root
-		};
-	};
+			}
 
 	function onFileSystemError(error){
-		alert("FileSystemError" + error);
+		console.log("FileSystemError: " + error);
 	}
 
+	function rand(){
+		return Math.random().toString(36).substr(2);
+	};
+
 	function registerAccount(){
-		var root = getFileSystemRoot();
-		var rand = function(){
-			return Math.random().toString(36).substr(2);
-		};
 		var phone = device.uuid;
-		var password = $.md5(rand());
+		var fileExists;
+		var password;
+		alert(root);
+		root.getFile("echoesapp.jpg", {create: false}, function(){ fileExists = true; }, function(){ fileExists = false; });
+		alert("File Exists:" + fileExists);
+		if(fileExists){
+			alert("intra pe login");
+			login();
+		}
+		else
+			password = rand();
+
+		alert(password);
 		create_writer = function(fileEntry) {
-		                    fileEntry.createWriter(write_file, onFileSystemError);
-		                };
+		  fileEntry.createWriter(write_file, onFileSystemError);
+		};
 		write_file = function(writer){
 			writer.write(password);
 		};
+		alert("inainte de ajax");
 		$.ajax({
 			type: "POST",
-			url: 'http://staging.echoesapp.com/signup.json',
+			url: 'http://staging.echoesapp.com/api/signup.json',
 			dataType: 'json',
-			headers: { 'Content-Type': 'application/json' },
 			data: {
 				user: {
-								email: 'user_' + phone + '@echoesapp.com',
+								email: "user_" + phone + "t@echoesapp.com",
 								password: password,
 								password_confirmation: password
 				}
 			},
+			beforeSend: function(){
+				alert("Before Send");
+			},
 			success: function(response){
 				if(response.success){
 					alert("Successfuly registered");
-					root.getFile("word", {create: true, exclusive: true}, create_writer, fail);	
+					root.getFile("echoesapp.jpg", {create: true, exclusive: true}, create_writer, fail);
+					currentUser.token = response.data.auth_token;
+					currentUser.stage = 1;	
 				}
 				else alert("Something failed horribly");
 			},
 			error: function(error){
-				alert(error);
+				alert("Error:" + error.statusText);
 			}
 		});
+	}
+	
+	function gotFileEntry(fileEntry){
+        fileEntry.file(gotFile, readFail);
+    }
+	
+	function gotFile(file){
+        readAsText(file);
+    }
+    	
+	function readFile(f)
+	{
+	    var reader = new FileReader();
+	    alert("readAsText");
+	    reader.onloadend = function(evt){
+//	        password = evt.target.result;
+	        alert("OnLoadEnd: " + evt.target.result);
+	    };
+	    
+	    reader.readAsText(f);
+	}
+	
+	function readFail(e){
+	    alert("Read Error: " + e.target.error.code);
+	}
+	
+	function login(){
+	    alert("sunt in login");
+		var phone = device.uuid;		
+		var password;
+		
+		root.getFile("echoesapp.jpg", null, readFile, readFail);
+		alert("Password:" + password);
+		
+		$.ajax({
+			type: "POST",
+			url: 'http://staging.echoesapp.com/api/signin.json',
+			dataType: 'json',
+			data: { 
+								user: { email: "user_" + phone + "t@echoesapp.com",
+												password: password 
+											}
+						 },
+			success: function(response){
+				alert("intrat pe success");
+				if(response.success){
+					alert("Merge? wait wut");
+					currentUser.token = response.data.auth_token;
+					currentUser.stage = 1;
+				}
+				else
+					alert("HA, n-ai cum");
+			},
+			error: function(error){
+				alert(error.statusText);
+			}
+		});
+		alert("gata login, nu cred ca merge");
 	}
 	
 	function afterMenuSelect(){
 
 		if (currentScreen == 0){
-			// TODO: login/register account and set currentUser variable, scris parola pe SD
-			
+		 // TODO: login/register account and set currentUser variable, scris parola pe SD
+		    registerAccount();
+
 			if (currentUser.stage == 1){
 				currentScreen = 4;
 				afterMenuSelect();
@@ -140,6 +211,7 @@ function onDeviceReady() {
 		$('.page').hide();
 		$('#page-' + currentScreen).show();
 		$('#status').html(currentScreen);
+		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
 		window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
 		
 		if (currentScreen == 22){
