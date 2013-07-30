@@ -78,7 +78,7 @@ function onDeviceReady() {
 
 
 
-	function loginUser(){
+	function loginUser() {
 		root.getFile("echoesapp.jpg",
 			{
 				create: false,
@@ -95,7 +95,7 @@ function onDeviceReady() {
 
 
 
-	function registerUser(){
+	function registerUser() {
 		currentUser.password = Math.random().toString(36).substr(2);
 
 		create_writer = function(fileEntry) {
@@ -210,7 +210,7 @@ function onDeviceReady() {
 
 
 
-	function afterMenuSelect(){
+	function afterMenuSelect() {
 
 		if (currentScreen == 0){
 			authenticateUser();
@@ -253,7 +253,11 @@ function onDeviceReady() {
 		$('#page-' + currentScreen).show();
 		$('#status').html(currentScreen);
 		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
-		window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
+		if (currentUser.language != 'en' && $('#page-' + currentScreen + ' .read-text.' + currentUser.language).length > 0) {
+			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text.' + currentUser.language).text());			
+		} else {
+			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
+		}
 
 		if (currentScreen == 22){
 			afterMessageSelect();
@@ -322,7 +326,6 @@ function onDeviceReady() {
         });
 	}
 
-	// TODO: a se seta un parametru (mesaj) pe functia asta
 	function readCurrentMessage(){
 		if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0) {
 			inbox_email=mailbox['inbox'].messages[mailbox['inbox'].current];
@@ -356,7 +359,7 @@ function onDeviceReady() {
 	}
 
 	// retrieve contacts
-	function refreshContacts(){
+	function refreshContacts() {
 		window.plugins.tts.speak('refreshing contacts');
 
 		$.ajax({
@@ -572,20 +575,20 @@ function onDeviceReady() {
 
 
 	function doubleTapCustomCallback(event, target) {
-			if(currentUser.language == 'en'){
-				 window.plugins.tts.isLanguageAvailable("it", function(){
-		        	 window.plugins.tts.setLanguage("it");
-		        },fail);
+		if (currentUser.language == 'en') {
+			window.plugins.tts.isLanguageAvailable("it", function(){
 				window.plugins.tts.stop(win, fail);
-				window.plugins.tts.speak("change language to italian");
-			}
-			if(currentUser.language== 'it'){
-				 window.plugins.tts.isLanguageAvailable("en", function(){
-					 window.plugins.tts.setLanguage("en");
-		        },fail);
-				window.plugins.tts.stop(win, fail);
-				window.plugins.tts.speak("change language to english");
-			}
+	        	window.plugins.tts.setLanguage("it");
+				window.plugins.tts.speak("bongiorno italia");
+	        	currentUser.language = 'it';
+	        },fail);
+		} else if (currentUser.language == 'it') {
+			window.plugins.tts.isLanguageAvailable("en", function(){
+				window.plugins.tts.setLanguage("en");
+	        },fail);
+			window.plugins.tts.stop(win, fail);
+			window.plugins.tts.speak("switching to cnn");
+        	currentUser.language = 'en';
 		}
     }
 
