@@ -1,8 +1,8 @@
 //00-splash,    01-tutorial1, 02-tutorial2,    03-tutorial3, 04-add email, 05-sync
 //              11-compose,   12-inbox,        13-sent,      14-trash,     15-archive, 16-settings
 //20-reply all, 21-reply,     22-read message, 23-forward 	 24-contacts
-var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,'add email' ,'syncronization', '', '', '', '', 
-             'contacts-compose', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '', 
+var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,'add email' ,'syncronization', '', '', '', '',
+             'contacts-compose', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '',
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
 //stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
@@ -21,20 +21,20 @@ var root, passwordSaved = false;
 document.addEventListener("deviceready", onDeviceReady, false);
 
 function onDeviceReady() {
-	
+
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
 	// window.plugins.tts.setLanguage('it', ChangeLanguageWin, fail);
 
 	// initialize LocalStorage
 	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, onFileSystemError);
-	
+
 	// initialize uuid
-	currentUser.uuid = device.uuid;	
+	currentUser.uuid = device.uuid;
 	currentUser.username = "user_" + currentUser.uuid + "@echoesapp.com";
 
 	afterMenuSelect();
-	
+
 	// gestures handlers
 	$("#events").swipe({
 	    swipe: function(event, direction, distance, duration, fingerCount){
@@ -47,54 +47,54 @@ function onDeviceReady() {
 	    	doubleTapCustomCallback(event, target);
 	    },
 	    tap: function(event, target){
-	    	tapCustomCallback(event, target);	    
+	    	tapCustomCallback(event, target);
 	    }
 	});
 
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
 	function authenticateUser() {
-		root.getFile("echoesapp.jpg", 
-			{ create: false }, 
-			function() { passwordSaved = true; }, 
+		root.getFile("echoesapp.jpg",
+			{ create: false },
+			function() { passwordSaved = true; },
 			function() { passwordSaved = false; }
 		);
-		
+
 		if (passwordSaved) {
 			loginUser();
 		} else {
 			registerUser();
 		}
 	}
-	
-	
 
-	
-	
-	
+
+
+
+
+
 	function loginUser(){
-		root.getFile("echoesapp.jpg", 
+		root.getFile("echoesapp.jpg",
 			{
-				create: false, 
+				create: false,
 				exclusive: false
-			}, 
-			loadPassword, 
+			},
+			loadPassword,
 			loadPasswordFail
 		);
 	}
-	
-	
-	
-		
-	
-	
-	
+
+
+
+
+
+
+
 	function registerUser(){
 		currentUser.password = Math.random().toString(36).substr(2);
 
@@ -104,7 +104,7 @@ function onDeviceReady() {
 		write_file = function(writer) {
 			writer.write(password);
 		};
-		
+
 		alert("inainte de ajax");
 		$.ajax({
 			type: "POST",
@@ -121,14 +121,14 @@ function onDeviceReady() {
 				if (response.success) {
 					alert("Successfuly registered");
 
-					root.getFile("echoesapp.jpg", 
-						{ create: true, exclusive: true }, 
+					root.getFile("echoesapp.jpg",
+						{ create: true, exclusive: true },
 						create_writer, fail
 					);
 					currentUser.token = response.data.auth_token;
-					currentUser.stage = response.data.stage;	
+					currentUser.stage = response.data.stage;
 				}
-				else 
+				else
 					alert("Unable to run application.");
 			},
 			error: function(error){
@@ -136,43 +136,43 @@ function onDeviceReady() {
 			}
 		});
 	}
-	
+
 	function gotFileEntry(fileEntry){
         fileEntry.file(gotFile, readFail);
     }
-	
+
 	function gotFile(file){
         readAsText(file);
     }
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
 	function loadPassword(fileEntry) {
 	    fileEntry.file(readingPassword, loadPasswordFail);
 	}
-	
+
 	function readingPassword(file){
 		var reader = new FileReader();
 
 		reader.onloadend = function(evt) {
             currentUser.password = evt.target.result;
-            
+
             // login
     		$.ajax({
     			type: "POST",
     			url: 'http://staging.echoesapp.com/api/signin.json',
     			dataType: 'json',
-    			data: { 
-					user: { 
+    			data: {
+					user: {
 						email: currentUser.username,
-						password: currentUser.password 
+						password: currentUser.password
 					}
 				},
 				success: function(response) {
@@ -189,27 +189,27 @@ function onDeviceReady() {
 				}
     		});
         };
-        
+
         reader.readAsText(file);
 	 }
-	
+
 	function loadPasswordFail(e){
 	    alert("Load Password Fail. Error: " + e.target.error.code);
 	}
-		
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	function afterMenuSelect(){
 
 		if (currentScreen == 0){
@@ -248,13 +248,13 @@ function onDeviceReady() {
 			//			currentScreen = 12; // redirect to inbox
 			//			currentUser.stage = 3;
 		}
-		
+
 		$('.page').hide();
 		$('#page-' + currentScreen).show();
 		$('#status').html(currentScreen);
 		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
 		window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
-		
+
 		if (currentScreen == 22){
 			afterMessageSelect();
 			readCurrentMessage();
@@ -279,11 +279,11 @@ function onDeviceReady() {
 			window.plugins.tts.speak(mailbox['archive'].messages[mailbox['archive'].current].subject);
 		}
 	}
-	
-	// retrieve messages	
+
+	// retrieve messages
 	function refreshMessages(folder){
 		window.plugins.tts.speak('refreshing messages');
-		
+
 		$.ajax({
             type: "GET",
             // TODO: mesajele trebuie aduse din emails
@@ -297,11 +297,11 @@ function onDeviceReady() {
             	mailbox['sent']    = { current: -1, messages: [] };
             	mailbox['archive'] = { current: -1, messages: [] };
             	mailbox['trash']   = { current: -1, messages: [] };
-            	
+
             	response.forEach(function(element, index, array) {
-            		 mailbox[element['folder']].messages.push(element);            		
+            		 mailbox[element['folder']].messages.push(element);
             	});
-            	
+
         		if (mailbox['inbox'].messages.length > 0){
         			mailbox['inbox'].current = 0;
         		}
@@ -319,9 +319,9 @@ function onDeviceReady() {
             error: function(error) {
             	window.plugins.tts.speak('error: ' + error.statusText);
             }
-        });		
+        });
 	}
-	
+
 	// TODO: a se seta un parametru (mesaj) pe functia asta
 	function readCurrentMessage(){
 		if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0) {
@@ -330,7 +330,7 @@ function onDeviceReady() {
 			window.plugins.tts.speak("Subject:" + inbox_email.subject);
 			window.plugins.tts.speak("Content:" + inbox_email.content);
 		}
-		
+
 		if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0) {
 			sent_email=mailbox['sent'].messages[mailbox['sent'].current];
 			window.plugins.tts.speak("To:" + sent_email.to);
@@ -354,11 +354,11 @@ function onDeviceReady() {
 			window.plugins.tts.speak("Content:" + archive_email.content);
 		}
 	}
-	
-	// retrieve contacts	
+
+	// retrieve contacts
 	function refreshContacts(){
 		window.plugins.tts.speak('refreshing contacts');
-		
+
 		$.ajax({
             type: "GET",
             url: 'http://staging.echoesapp.com/contacts.json',
@@ -380,16 +380,16 @@ function onDeviceReady() {
             error: function(error) {
             	window.plugins.tts.speak('error: ' + error.statusText);
             }
-        });	
+        });
 	}
-	
+
 	function afterContactSelect() {
 		if ([10,24].indexOf(currentScreen) > -1 && currentContact >= 0){
 			window.plugins.tts.speak('' + contacts.length + ' contacts. contact ' + currentContact);
 			window.plugins.tts.speak("Name " + contacts[currentContact].name + ". Email " + contacts[currentContact].email);
 		}
 	}
-			
+
 
 	$("#sync-button").click(function(){
 		$.ajax({
@@ -397,7 +397,7 @@ function onDeviceReady() {
 			url: 'http://staging.echoesapp.com/api/updatemail.json',
 			data: {
             	auth_token: currentUser.token,
-				email_address: $('#email-input').text(), 
+				email_address: $('#email-input').text(),
 				email_password: $('#password-input').text()
 				},
 			dataType: 'json',
@@ -409,7 +409,7 @@ function onDeviceReady() {
 					alert("Email or password incorrect");
 					window.plugins.tts.speak("Email or password incorrect");
 				}
-		   
+
 			},
 			error: function (error) {
 				alert("Something went wrong");
@@ -423,22 +423,22 @@ function onDeviceReady() {
 		$(".play-button").hide();
 		recordAudio();
 	});
-  
+
 	$(".record-button").click(function(){
 		$(".stop-record").hide();
 		stopRec();
 		$(".play-button").show();
 		$(".start-record").show();
 	});
-  
+
 	$(".play-button").click(function(){
 		playAudio();
 	});
 
-	
-	
-	
-	
+
+
+
+
 	// CALLBACKS
 	function gotFS(fileSystem) {
 		root = fileSystem.root;
@@ -448,23 +448,23 @@ function onDeviceReady() {
 		alert("init: FileSystemError: " + error);
 	}
 
-	
+
 	// GESTURES CALLBACKS
 	function swipeCustomCallback(event, direction, distance, duration, fingerCount) {
 		previousScreen = currentScreen;
-	  
+
 	    if (direction == 'left'){
 		    if([0,1,2,3,11,12,13,14,15,20,21,22].indexOf(currentScreen) > -1) currentScreen += 1;
 		    window.plugins.tts.stop(win, fail);
 		    afterMenuSelect();
 	    }
-	
+
 		if (direction == 'right'){
 			if([1,2,3,4,12,13,14,15,16,21,22,23].indexOf(currentScreen) > -1) currentScreen -= 1;
 			window.plugins.tts.stop(win, fail);
 			afterMenuSelect();
 		}
-	  
+
 		if (direction == 'down'){
 			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
 				mailbox['inbox'].current += 1;
@@ -472,21 +472,21 @@ function onDeviceReady() {
 		  	  	if (mailbox['inbox'].current >= mailbox['inbox'].messages.length) mailbox['inbox'].current = mailbox['inbox'].messages.length - 1;
 		  	  	afterMessageSelect();
 			}
-			
+
 			if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
 				mailbox['sent'].current += 1;
 				window.plugins.tts.stop(win, fail);
 		  	  	if (mailbox['sent'].current >= mailbox['sent'].messages.length) mailbox['sent'].current = mailbox['sent'].messages.length - 1;
 		  	  	afterMessageSelect();
 			}
-			
+
 			if ([14].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
 				mailbox['archive'].current += 1;
 				window.plugins.tts.stop(win, fail);
 		  	  	if (mailbox['archive'].current >= mailbox['archive'].messages.length) mailbox['archive'].current = mailbox['archive'].messages.length - 1;
 		  	  	afterMessageSelect();
 			}
-			
+
 			if ([15].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
 				mailbox['trash'].current += 1;
 				window.plugins.tts.stop(win, fail);
@@ -504,9 +504,9 @@ function onDeviceReady() {
 				window.plugins.tts.stop(win, fail);
 		  	  	if (currentContact >= contacts.length) currentContact = contacts.length - 1;
 		  	  	afterContactSelect();
-			}	
+			}
 		}
-			  
+
 		if (direction == 'up'){
 			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
 				mailbox['inbox'].current -= 1;
@@ -514,7 +514,7 @@ function onDeviceReady() {
 				if (mailbox['inbox'].current < 0) mailbox['inbox'].current = 0;
 				afterMessageSelect();
 			}
-			
+
 			if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
 				mailbox['sent'].current -= 1;
 				window.plugins.tts.stop(win, fail);
@@ -569,13 +569,27 @@ function onDeviceReady() {
     		if([0,1,2,3,4].indexOf(currentScreen) > -1) afterMenuSelect();
 		}
     }
-	
-	
+
+
 	function doubleTapCustomCallback(event, target) {
-		window.plugins.tts.speak('double tap');
+			if(currentUser.language == 'en'){
+				 window.plugins.tts.isLanguageAvailable("it", function(){
+		        	 window.plugins.tts.setLanguage("it");
+		        },fail);
+				window.plugins.tts.stop(win, fail);
+				window.plugins.tts.speak("change language to italian");
+			}
+			if(currentUser.language== 'it'){
+				 window.plugins.tts.isLanguageAvailable("en", function(){
+					 window.plugins.tts.setLanguage("en");
+		        },fail);
+				window.plugins.tts.stop(win, fail);
+				window.plugins.tts.speak("change language to english");
+			}
+		}
     }
-	
-	
+
+
 	function tapCustomCallback(event, target) {
     	if ([12,13,14,15].indexOf(currentScreen) > -1){
 			window.plugins.tts.stop(win, fail);
@@ -586,14 +600,14 @@ function onDeviceReady() {
 			} else {
 				window.plugins.tts.speak('No messages. Refresh messages with long tap.');
 			}
-    	} 
+    	}
     	else {
 	    	if (currentScreen == 22){
     			window.plugins.tts.stop(win, fail);
 	    		currentScreen = 12;
 	    		afterMenuSelect();
 	    		afterMessageSelect();
-	    	}	   
+	    	}
 	    	if(currentScreen == 24){
 	    		window.plugins.tts.stop(win, fail);
 	    		currentScreen = 23;
@@ -609,5 +623,9 @@ function onDeviceReady() {
     	}
 	}
 	// END GESTURES CALLBACKS
+
+	function fail() {
+
+	}
 
 }
