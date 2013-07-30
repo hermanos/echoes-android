@@ -6,7 +6,7 @@ var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
 
 //stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
-var currentUser = { id: 0, name: '', language: 'en', stage: 0 };
+var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '' };
 
 var mailbox = [];
 mailbox['inbox']   = { current: -1, messages: [] };
@@ -17,10 +17,8 @@ mailbox['trash']   = { current: -1, messages: [] };
 var contacts = [], currentContact = -1;
 var mediaRec;
 
-
-
-
-$(document).ready(function(){
+document.addEventListener("deviceready", onDeviceReady, false);
+function onDeviceReady() {
 	
 	// initialize TTS services
 	window.plugins.tts.startup(startupWin, fail);
@@ -58,7 +56,7 @@ $(document).ready(function(){
 	};
 
 	function onFileSystemError(error){
-		console.log("FileSystemError" + error);
+		alert("FileSystemError" + error);
 	}
 
 	function registerAccount(){
@@ -102,7 +100,7 @@ $(document).ready(function(){
 	function afterMenuSelect(){
 
 		if (currentScreen == 0){
-			// TODO: login and set currentUser variable
+			// TODO: login/register account and set currentUser variable, scris parola pe SD
 			
 			if (currentUser.stage == 1){
 				currentScreen = 4;
@@ -134,7 +132,7 @@ $(document).ready(function(){
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
-			// poate polling getStage si daca e 3 atunci:
+			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
 			//			currentUser.stage = 3;
 		}
@@ -169,7 +167,7 @@ $(document).ready(function(){
             dataType: 'json',
             data: {
             	// TODO: pentru toate apelurile ajax se va folosi TOKEN in loc de userid
-            	current_user: currentUser.id
+            	current_user: currentUser.token
             },
             success: function(response){
             	// TODO: se aduc mesajele din toate folderele
@@ -446,4 +444,4 @@ $(document).ready(function(){
 	}
 	// END GESTURES CALLBACKS
 
-});
+}
