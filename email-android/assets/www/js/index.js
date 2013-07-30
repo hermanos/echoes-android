@@ -140,6 +140,7 @@ function onDeviceReady() {
 		$('.page').hide();
 		$('#page-' + currentScreen).show();
 		$('#status').html(currentScreen);
+		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
 		window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
 		
 		if (currentScreen == 22){

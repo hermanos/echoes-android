@@ -26,7 +26,7 @@ body {
     height: 100%;
     margin: 0px;
     padding: 0px;
-    font-size: 26px;
+    font-size: 30px;
     font-family: Helvetica, Arial, sans-serif;
 }
 
@@ -42,10 +42,7 @@ div.page {
 }
 
 div.page div.page-title {
-	font-size: 2em;
-	display: block;
-	margin-bottom: 20px;
-	text-align:center;
+	display: none;
 }
 
 div.page div.read-text {
@@ -57,12 +54,17 @@ div.page div.read-help {
 	display: none;
 }
 
+
+
+
 div#status, div#status2 {
 	color: white;
 }
 
 div#help {
 	height: 25%;
+	font-size: 2em;
+	text-align:center;
 }
 
 p.contact-email{
@@ -78,13 +80,37 @@ input#basic{
 	margin-bottom: 1em;
 }
 div#sync-button {
-	background-color: #B4B485;
+	background-color: #E6E6E6;
 	padding: 10px 50px;
-	margin-top: 1em;
-	border-radius: 10px;
+	margin-top: 1px;
+	/*border-radius: 10px;*/
 	text-decoration: none;
-	color: white;
+	color: #424242;
 }
 #stop-record, #play-button {
 	display: none;
 }
+
+#email-input{
+background-color: #E6E6E6;
+	padding: 10px 0px 10px 0px;
+	margin-top: 1px;
+	/*border-radius: 10px;*/
+	text-decoration: none;
+	color: #424242;
+	width: 310px;
+	text-align:center;
+
+}
+
+#password-input{
+background-color: #E6E6E6;
+	padding: 10px 0px 10px 0px;
+	margin-top: 1px;
+	/*border-radius: 10px;*/
+	text-decoration: none;
+	color: #424242;
+	width: 310px;
+	text-align:center;
+}
+
