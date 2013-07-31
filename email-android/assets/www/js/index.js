@@ -1,6 +1,6 @@
-//00-splash,    01-tutorial1, 02-tutorial2,    03-tutorial3, 04-add email, 05-sync
-//              11-compose,   12-inbox,        13-sent,      14-trash,     15-archive, 16-settings
-//20-reply all, 21-reply,     22-read message, 23-forward 	 24-contacts
+//00-splash,       01-tutorial1, 02-tutorial2,    03-tutorial3, 04-add email, 05-sync
+//10-message sent, 11-compose,   12-inbox,        13-sent,      14-trash,     15-archive, 16-settings
+//20-reply all,    21-reply,     22-read message, 23-forward 	 24-contacts
 var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,'tutorial page 3' ,'add email' ,'syncronization', '', '', '', '',
              'contacts-compose', 'compose', 'inbox', 'sent', 'trash', 'archive', 'settings', '', '', '',
              'reply all', 'reply', 'read message', 'forward', 'contacts-forward'];
@@ -325,14 +325,14 @@ function onDeviceReady() {
             data: {
             	auth_token: currentUser.token
             },
-            success: function(response){
+            success: function(response) {
                	mailbox['inbox']   = { current: -1, messages: [] };
             	mailbox['sent']    = { current: -1, messages: [] };
             	mailbox['archive'] = { current: -1, messages: [] };
             	mailbox['trash']   = { current: -1, messages: [] };
 
         		response.forEach(function(element, index, array) {
-            		 mailbox[element['folder']].messages.push(element);
+            		mailbox[element['folder']].messages.push(element);
             	});
 
         		if (mailbox['inbox'].messages.length > 0){
@@ -593,10 +593,11 @@ function onDeviceReady() {
 
 
 	function longTapCustomCallback(event, target) {
-    	if ($(target).attr("id") == 'help') {
-			window.plugins.tts.speak('Help. ' + $('#page-' + currentScreen + ' .read-help').text());
+
+		if ($(target).attr("id") == 'help') {
+			readHelp(currentScreen);
     	} else {
-    		if([12,13,14,15].indexOf(currentScreen) > -1) refreshMessages('');
+    		if([12,13,14,15].indexOf(currentScreen) > -1) refreshMessages(currentScreen);
     		if([0,1,2,3,4].indexOf(currentScreen) > -1) afterMenuSelect();
 		}
     }
@@ -642,15 +643,15 @@ function onDeviceReady() {
 	}
 	// END GESTURES CALLBACKS
 
-	function fail() {
-
-	}
-
+	
+	
+	
+	// AUDIO COMPOSE CALLBACKS
 	var fileName = '';
 
 	function recordAudio() {
-		currentTimeStamp = new Date();
-		currentTimeStampString = "" + currentTimeStamp.getFullYear() + "m" + currentTimeStamp.getMonth() + "d" + currentTimeStamp.getDate() + "h" + currentTimeStamp.getHours() + "m" + currentTimeStamp.getMinutes() + "s" + currentTimeStamp.getSeconds();
+		now = new Date();
+		currentTimeStampString = "" + now.getFullYear() + "m" + now.getMonth() + "d" + now.getDate() + "h" + now.getHours() + "m" + now.getMinutes() + "s" + now.getSeconds();
 		fileName = "echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
 		
 		mediaRec = new Media(fileName, onSuccess, onError);

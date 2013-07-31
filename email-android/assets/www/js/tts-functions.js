@@ -9,11 +9,19 @@ function ChangeLanguageWin(result) {
 }
 
 function fail(result) {
-    alert("TTS Startup failure = " + result);
+    alert("Error! Fail: " + result);
 }
 function win(result) {
 }
 
+
+
+
+
+
+function readHelp(screen) {
+	window.plugins.tts.speak('Help. ' + $('#page-' + screen + ' .read-help').text());
+}
 
 
 // multilanguage
