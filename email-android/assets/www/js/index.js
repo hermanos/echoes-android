@@ -603,15 +603,7 @@ function onDeviceReady() {
 
 
 	function doubleTapCustomCallback(event, target) {
-		if (currentUser.language == 'en') {
-			changeLanguage('it');
-		} else if (currentUser.language == 'it') {
-			changeLanguage('fr');
-		} else if (currentUser.language == 'fr') {
-			changeLanguage('es');
-		} else if (currentUser.language == 'es') {
-			changeLanguage('en');
-		}
+		switchLanguage();
     }
 
 
