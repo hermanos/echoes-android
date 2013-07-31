@@ -7,6 +7,7 @@ var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,
 
 //stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
 var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '', uuid: '', password: '', username: '' };
+var currentFolder = '';
 
 var mailbox = [];
 mailbox['inbox']   = { current: -1, messages: [] };
@@ -102,10 +103,9 @@ function onDeviceReady() {
 		  fileEntry.createWriter(write_file, onFileSystemError);
 		};
 		write_file = function(writer) {
-			writer.write(password);
+			writer.write(currentUser.password);
 		};
 
-		alert("inainte de ajax");
 		$.ajax({
 			type: "POST",
 			url: 'http://staging.echoesapp.com/api/signup.json',
@@ -119,14 +119,28 @@ function onDeviceReady() {
 			},
 			success: function(response) {
 				if (response.success) {
-					alert("Successfuly registered");
-
 					root.getFile("echoesapp.jpg",
 						{ create: true, exclusive: true },
 						create_writer, fail
 					);
 					currentUser.token = response.data.auth_token;
 					currentUser.stage = response.data.stage;
+					
+					if (currentUser.stage == 1){
+						currentScreen = 4;
+						afterMenuSelect();
+						return;
+					}
+					if (currentUser.stage == 2){
+						currentScreen = 5;
+						afterMenuSelect();
+						return;
+					}
+					if (currentUser.stage == 3){
+						currentScreen = 12;
+						afterMenuSelect();
+						return;
+					}
 				}
 				else
 					alert("Unable to run application.");
@@ -179,7 +193,22 @@ function onDeviceReady() {
 					if (response.success) {
 						currentUser.token = response.data.auth_token;
 						currentUser.stage = response.data.stage;
-						alert(currentUser.token);
+						
+						if (currentUser.stage == 1){
+							currentScreen = 4;
+							afterMenuSelect();
+							return;
+						}
+						if (currentUser.stage == 2){
+							currentScreen = 5;
+							afterMenuSelect();
+							return;
+						}
+						if (currentUser.stage == 3){
+							currentScreen = 12;
+							afterMenuSelect();
+							return;
+						}
 					}
 					else
 						alert("Authentication error");
@@ -211,25 +240,26 @@ function onDeviceReady() {
 
 
 	function afterMenuSelect() {
+		window.plugins.tts.stop(win, fail);
 
 		if (currentScreen == 0){
 			authenticateUser();
 
-			if (currentUser.stage == 1){
-				currentScreen = 4;
-				afterMenuSelect();
-				return;
-			}
-			if (currentUser.stage == 2){
-				currentScreen = 5;
-				afterMenuSelect();
-				return;
-			}
-			if (currentUser.stage == 3){
-				currentScreen = 12;
-				afterMenuSelect();
-				return;
-			}
+//			if (currentUser.stage == 1){
+//				currentScreen = 4;
+//				afterMenuSelect();
+//				return;
+//			}
+//			if (currentUser.stage == 2){
+//				currentScreen = 5;
+//				afterMenuSelect();
+//				return;
+//			}
+//			if (currentUser.stage == 3){
+//				currentScreen = 12;
+//				afterMenuSelect();
+//				return;
+//			}
 		}
 
 		if (currentScreen == 4){
@@ -266,19 +296,19 @@ function onDeviceReady() {
 	}
 
 	function afterMessageSelect(){
-		if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
+		if ([12].indexOf(currentFolder) > -1 && mailbox['inbox'].current >= 0){
 			window.plugins.tts.speak('' + mailbox['inbox'].messages.length + ' emails. email ' + mailbox['inbox'].current);
 			window.plugins.tts.speak(mailbox['inbox'].messages[mailbox['inbox'].current].subject);
 		}
-		if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0){
+		if ([13].indexOf(currentFolder) > -1 && mailbox['sent'].current >= 0){
 			window.plugins.tts.speak('' + mailbox['sent'].messages.length + ' emails. email ' + mailbox['sent'].current);
 			window.plugins.tts.speak(mailbox['sent'].messages[mailbox['sent'].current].subject);
 		}
-		if ([14].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0){
+		if ([14].indexOf(currentFolder) > -1 && mailbox['trash'].current >= 0){
 			window.plugins.tts.speak('' + mailbox['trash'].messages.length + ' emails. email ' + mailbox['trash'].current);
 			window.plugins.tts.speak(mailbox['trash'].messages[mailbox['trash'].current].subject);
 		}
-		if ([15].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0){
+		if ([15].indexOf(currentFolder) > -1 && mailbox['archive'].current >= 0){
 			window.plugins.tts.speak('' + mailbox['archive'].messages.length + ' emails. email ' + mailbox['archive'].current);
 			window.plugins.tts.speak(mailbox['archive'].messages[mailbox['archive'].current].subject);
 		}
@@ -290,19 +320,18 @@ function onDeviceReady() {
 
 		$.ajax({
             type: "GET",
-            // TODO: mesajele trebuie aduse din emails
             url: 'http://staging.echoesapp.com/emails.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
             },
             success: function(response){
-            	mailbox['inbox']   = { current: -1, messages: [] };
+               	mailbox['inbox']   = { current: -1, messages: [] };
             	mailbox['sent']    = { current: -1, messages: [] };
             	mailbox['archive'] = { current: -1, messages: [] };
             	mailbox['trash']   = { current: -1, messages: [] };
 
-            	response.forEach(function(element, index, array) {
+        		response.forEach(function(element, index, array) {
             		 mailbox[element['folder']].messages.push(element);
             	});
 
@@ -318,6 +347,7 @@ function onDeviceReady() {
         		if (mailbox['archive'].messages.length > 0){
         			mailbox['archive'].current = 0;
         		}
+        		        		
         		afterMessageSelect();
             },
             error: function(error) {
@@ -327,30 +357,30 @@ function onDeviceReady() {
 	}
 
 	function readCurrentMessage(){
-		if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0) {
-			inbox_email=mailbox['inbox'].messages[mailbox['inbox'].current];
+		if ([12].indexOf(currentFolder) > -1 && mailbox['inbox'].current >= 0) {
+			inbox_email = mailbox['inbox'].messages[mailbox['inbox'].current];
 			window.plugins.tts.speak("From:" + inbox_email.from);
 			window.plugins.tts.speak("Subject:" + inbox_email.subject);
 			window.plugins.tts.speak("Content:" + inbox_email.content);
 		}
 
-		if ([13].indexOf(currentScreen) > -1 && mailbox['sent'].current >= 0) {
-			sent_email=mailbox['sent'].messages[mailbox['sent'].current];
+		if ([13].indexOf(currentFolder) > -1 && mailbox['sent'].current >= 0) {
+			sent_email = mailbox['sent'].messages[mailbox['sent'].current];
 			window.plugins.tts.speak("To:" + sent_email.to);
 			window.plugins.tts.speak("Subject:" + sent_email.subject);
 			window.plugins.tts.speak("Content:" + sent_email.content);
 		}
 
-		if ([14].indexOf(currentScreen) > -1 && mailbox['trash'].current >= 0) {
-			trash_email=mailbox['trash'].messages[mailbox['trash'].current];
+		if ([14].indexOf(currentFolder) > -1 && mailbox['trash'].current >= 0) {
+			trash_email = mailbox['trash'].messages[mailbox['trash'].current];
 			window.plugins.tts.speak("From:" + trash_email.from);
 			window.plugins.tts.speak("To:" + trash_email.to);
 			window.plugins.tts.speak("Subject:" + trash_email.subject);
 			window.plugins.tts.speak("Content:" + trash_email.content);
 		}
 
-		if ([15].indexOf(currentScreen) > -1 && mailbox['archive'].current >= 0) {
-			archive_email=mailbox['archive'].messages[mailbox['archive'].current];
+		if ([15].indexOf(currentFolder) > -1 && mailbox['archive'].current >= 0) {
+			archive_email = mailbox['archive'].messages[mailbox['archive'].current];
 			window.plugins.tts.speak("From:" + archive_email.from);
 			window.plugins.tts.speak("To:" + archive_email.to);
 			window.plugins.tts.speak("Subject:" + archive_email.subject);
@@ -400,22 +430,20 @@ function onDeviceReady() {
 			url: 'http://staging.echoesapp.com/api/updatemail.json',
 			data: {
             	auth_token: currentUser.token,
-				email_address: $('#email-input').text(),
-				email_password: $('#password-input').text()
+				email_address: $('#email-input').val(),
+				email_password: $('#password-input').val()
 				},
 			dataType: 'json',
 			success: function (response) {
-				alert(response);
 				if (response.success == true) {
+					currentScreen = 5;
 					afterMenuSelect();
 				} else {
-					alert("Email or password incorrect");
 					window.plugins.tts.speak("Email or password incorrect");
 				}
-
 			},
 			error: function (error) {
-				alert("Something went wrong");
+				alert("Something went wrong" + error.statusText);
 			}
 		});
 	});
@@ -598,6 +626,7 @@ function onDeviceReady() {
 			window.plugins.tts.stop(win, fail);
 
     		if (mailbox['inbox'].messages.length > 0){
+    			currentFolder = currentScreen;
 				currentScreen = 22;
 				afterMenuSelect();
 			} else {
@@ -607,7 +636,7 @@ function onDeviceReady() {
     	else {
 	    	if (currentScreen == 22){
     			window.plugins.tts.stop(win, fail);
-	    		currentScreen = 12;
+	    		currentScreen = currentFolder;
 	    		afterMenuSelect();
 	    		afterMessageSelect();
 	    	}
@@ -629,6 +658,78 @@ function onDeviceReady() {
 
 	function fail() {
 
+	}
+
+	var fileName = '';
+
+	function recordAudio() {
+		currentTimeStamp = new Date();
+		currentTimeStampString = "" + currentTimeStamp.getFullYear() + "m" + currentTimeStamp.getMonth() + "d" + currentTimeStamp.getDate() + "h" + currentTimeStamp.getHours() + "m" + currentTimeStamp.getMinutes() + "s" + currentTimeStamp.getSeconds();
+		fileName = "echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
+		
+		mediaRec = new Media(fileName, onSuccess, onError);
+	    
+	    // Record audio begins here
+	    mediaRec.startRecord();
+		
+	    // Stops recording after 30 sec (default if stopRec is not called)
+	    var recTime = 0;
+	    var recInterval = setInterval(function() {
+	        recTime = recTime + 1;
+	        if (recTime >= 30) {
+	            clearInterval(recInterval);
+	            mediaRec.stopRecord();
+	        } 
+	    }, 1000);
+	}
+
+	function stopRec(){
+		mediaRec.stopRecord();
+	}
+	     
+	function playAudio(srcm) {
+		var srcm = fileName;
+		var my_media = null;
+		var mediaTimer = null;
+	    
+		if (my_media == null) {
+	        // Creates Media object from srcm
+	        my_media = new Media(srcm, onSuccess, onError);
+	    } // else play current audio
+	    	
+		// Play audio
+		my_media.play();
+
+	    // Update my_media position every second
+	    if (mediaTimer == null) {
+	        mediaTimer = setInterval(function() {
+	            // get my_media position
+	            my_media.getCurrentPosition(
+	                // success callback
+	                function(position) {
+	                    if (position > -1) {
+	                        setAudioPosition((position) + " sec");
+	                    }
+	                },
+	                // error callback
+	                function(e) {
+	                    console.log("Error getting pos=" + e);
+	                    setAudioPosition("Error: " + e);
+	                }
+	            );
+	        }, 1000);
+	    }
+	}
+
+
+	// onSuccess Callback
+	function onSuccess() {
+	    console.log("recordAudio():Audio Success");
+	}
+
+	// onError Callback 
+	function onError(error) {
+	    alert('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
 	}
 
 }
