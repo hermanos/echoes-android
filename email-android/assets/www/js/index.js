@@ -604,19 +604,13 @@ function onDeviceReady() {
 
 	function doubleTapCustomCallback(event, target) {
 		if (currentUser.language == 'en') {
-			window.plugins.tts.isLanguageAvailable("it", function(){
-				window.plugins.tts.stop(win, fail);
-	        	window.plugins.tts.setLanguage("it");
-				window.plugins.tts.speak("bongiorno italia");
-	        	currentUser.language = 'it';
-	        },fail);
+			changeLanguage('it');
 		} else if (currentUser.language == 'it') {
-			window.plugins.tts.isLanguageAvailable("en", function(){
-				window.plugins.tts.setLanguage("en");
-	        },fail);
-			window.plugins.tts.stop(win, fail);
-			window.plugins.tts.speak("switching to cnn");
-        	currentUser.language = 'en';
+			changeLanguage('fr');
+		} else if (currentUser.language == 'fr') {
+			changeLanguage('es');
+		} else if (currentUser.language == 'es') {
+			changeLanguage('en');
 		}
     }
 

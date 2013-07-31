@@ -12,3 +12,19 @@ function fail(result) {
 }
 function win(result) {
 }
+
+var languages = [];
+languages['en'] = 'Switching to CNN';
+languages['it'] = 'Bongiorno Italia';
+languages['fr'] = 'Parlez-vous francais?';
+languages['es'] = 'Cento pessos';
+
+
+function changeLanguage(language) {
+	window.plugins.tts.isLanguageAvailable(language, function(){
+		window.plugins.tts.stop(win, fail);
+    	window.plugins.tts.setLanguage(language);
+		window.plugins.tts.speak(languages[language]);
+    	currentUser.language = language;
+    },fail);
+}
