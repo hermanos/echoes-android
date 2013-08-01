@@ -108,7 +108,7 @@ function onDeviceReady() {
 
 		$.ajax({
 			type: "POST",
-			url: 'http://staging.echoesapp.com/api/signup.json',
+			url: 'http://10.0.0.80:3000/api/signup.json',
 			dataType: 'json',
 			data: {
 				user: {
@@ -146,7 +146,7 @@ function onDeviceReady() {
 					alert("Unable to run application.");
 			},
 			error: function(error){
-				alert("Error:" + error.statusText);
+				alert("Error: " + error.statusText);
 			}
 		});
 	}
@@ -181,7 +181,7 @@ function onDeviceReady() {
             // login
     		$.ajax({
     			type: "POST",
-    			url: 'http://staging.echoesapp.com/api/signin.json',
+    			url: 'http://10.0.0.80:3000/api/signin.json',
     			dataType: 'json',
     			data: {
 					user: {
@@ -274,8 +274,7 @@ function onDeviceReady() {
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
 			alert("inainte de syncajax ==" + currentUser.stage);
-			syncMail();
-			afterMenuSelect();	
+			syncMail();	
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
 			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
@@ -294,12 +293,44 @@ function onDeviceReady() {
 
 		if (currentScreen == 12){
 			window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
+			uploadFile("/sdcard/echoesapp.jpg");
 		}
 
 		if (currentScreen == 22){
 			afterMessageSelect();
 			readCurrentMessage();
 		}
+	}
+
+	function uploadWin(r){
+		alert("in uploadWin" + r.response)
+	}
+
+	function uploadFail(error){
+		alert("Upload Failed: " + error.code)
+	}
+
+	function uploadFile(fileURI){
+		alert("in upload");
+	
+		alert("fileURI " + fileURI);
+		var options = new FileUploadOptions();
+		options.fileKey = "file";
+		options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
+		options.mimeType = "text/plain";
+
+		var params = {};
+		params.value1 = "upload";
+		params.value2 = "file";
+
+		options.params = params;
+		alert("Ajunge aici");
+		var uri = encodeURI("http://10.0.0.80:3000/api/upload.json?auth_token=" + currentUser.token);
+		alert("Ajunge aici 2");
+		var ft = new FileTransfer();
+		alert("fail aici");
+		ft.upload(fileURI, uri, uploadWin, uploadFail, options);
+		alert("gata upload");
 	}
 
 	function afterMessageSelect(){
@@ -325,7 +356,7 @@ function onDeviceReady() {
 		alert("In sync mail: " + currentUser.stage)
 	  $.ajax({
       type: "POST",
-      url: 'http://localhost:3000/api/mailsync.json',
+      url: 'http://10.0.0.80:3000/api/mailsync.json',
       crossDomain: true,
       dataType: 'json',
       data: { auth_token: currentUser.token, folder: "inbox" },
@@ -346,7 +377,7 @@ function onDeviceReady() {
 
 		$.ajax({
             type: "GET",
-            url: 'http://staging.echoesapp.com/emails.json',
+            url: 'http://10.0.0.80:3000/emails.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
@@ -422,7 +453,7 @@ function onDeviceReady() {
 
 		$.ajax({
             type: "GET",
-            url: 'http://staging.echoesapp.com/contacts.json',
+            url: 'http://10.0.0.80:3000/contacts.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
@@ -455,7 +486,7 @@ function onDeviceReady() {
 	$("#sync-button").click(function(){
 		$.ajax({
 			type: "POST",
-			url: 'http://staging.echoesapp.com/api/updatemail.json',
+			url: 'http://10.0.0.80:3000/api/updatemail.json',
 			data: {
             	auth_token: currentUser.token,
 				email_address: $('#email-input').val(),
