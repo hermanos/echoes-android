@@ -108,7 +108,7 @@ function onDeviceReady() {
 
 		$.ajax({
 			type: "POST",
-			url: 'http://10.0.0.80:3000/api/signup.json',
+			url: 'http://staging.echoesapp.com/api/signup.json',
 			dataType: 'json',
 			data: {
 				user: {
@@ -181,7 +181,7 @@ function onDeviceReady() {
             // login
     		$.ajax({
     			type: "POST",
-    			url: 'http://10.0.0.80:3000/api/signin.json',
+    			url: 'http://staging.echoesapp.com/api/signin.json',
     			dataType: 'json',
     			data: {
 					user: {
@@ -273,8 +273,8 @@ function onDeviceReady() {
 
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
-			alert("inainte de syncajax ==" + currentUser.stage);
-			syncMail();	
+			syncMail();
+			afterMenuSelect();	
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
 			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
@@ -293,13 +293,19 @@ function onDeviceReady() {
 
 		if (currentScreen == 12){
 			window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
-			uploadFile("/sdcard/echoesapp.jpg");
+			// uploadFile("/sdcard/echoesapp.jpg");
 		}
 
 		if (currentScreen == 22){
 			afterMessageSelect();
 			readCurrentMessage();
 		}
+	}
+
+	function sendMail(){
+		$.ajax({
+
+		});
 	}
 
 	function uploadWin(r){
@@ -311,9 +317,7 @@ function onDeviceReady() {
 	}
 
 	function uploadFile(fileURI){
-		alert("in upload");
 	
-		alert("fileURI " + fileURI);
 		var options = new FileUploadOptions();
 		options.fileKey = "file";
 		options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
@@ -324,13 +328,9 @@ function onDeviceReady() {
 		params.value2 = "file";
 
 		options.params = params;
-		alert("Ajunge aici");
-		var uri = encodeURI("http://10.0.0.80:3000/api/upload.json?auth_token=" + currentUser.token);
-		alert("Ajunge aici 2");
+		var uri = encodeURI("http://staging.echoesapp.com/api/upload.json?auth_token=" + currentUser.token);
 		var ft = new FileTransfer();
-		alert("fail aici");
 		ft.upload(fileURI, uri, uploadWin, uploadFail, options);
-		alert("gata upload");
 	}
 
 	function afterMessageSelect(){
@@ -353,31 +353,29 @@ function onDeviceReady() {
 	}
 
 	function syncMail(){
-		alert("In sync mail: " + currentUser.stage)
 	  $.ajax({
       type: "POST",
-      url: 'http://10.0.0.80:3000/api/mailsync.json',
+      url: 'http://staging.echoesapp.com/api/mailsync.json',
       crossDomain: true,
       dataType: 'json',
       data: { auth_token: currentUser.token, folder: "inbox" },
       success: function(data) {
-         alert(data.stage);
+      	console.log("Stage: " + data.stage);
       },
       error: function(e) {
-        alert("foc in 3, 2... " + e.statusText);
+        alert("Error in sync: " + e.statusText);
       }
     });
-		alert("Ies din syncMail: " + currentUser.stage)
 	}
 
 
 	// retrieve messages
 	function refreshMessages(folder){
 		window.plugins.tts.speak('refreshing messages');
-
+		syncMail();
 		$.ajax({
             type: "GET",
-            url: 'http://10.0.0.80:3000/emails.json',
+            url: 'http://staging.echoesapp.com/emails.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
@@ -388,8 +386,11 @@ function onDeviceReady() {
             	mailbox['archive'] = { current: -1, messages: [] };
             	mailbox['trash']   = { current: -1, messages: [] };
 
-        		response.forEach(function(element, index, array) {
-            		mailbox[element['folder']].messages.push(element);
+	        		response.forEach(function(element, index, array) {
+	        				if(element.attachment != null){
+	        				 	downloadAttachment(element.attachment);
+	        				 }
+	            		mailbox[element['folder']].messages.push(element);
             	});
 
         		if (mailbox['inbox'].messages.length > 0){
@@ -413,6 +414,27 @@ function onDeviceReady() {
         }).done(function(){
 					window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
         });
+	}
+
+	function downloadAttachment(fileName){
+		var filePath = "/sdcard/echoesapp/" + fileName;
+
+		create_writer = function(fileEntry) {
+
+		  fileEntry.createWriter(write_file, onFileSystemError);
+		};
+		write_file = function(writer) {
+			writer.write(currentUser.password);
+		};
+		root.getFile(filePath,
+				{ create: true, exclusive: true },
+				create_writer, fail
+				);
+
+		var fileTransfer = new FileTransfer();
+		var uri = encodeURI("http://staging.echoesapp.com/api/download.json?auth_token=" + currentUser.token + "&filename=" + fileName);
+
+		fileTransfer.download(uri, filePath, uploadWin, uploadFail);
 	}
 
 	function readCurrentMessage(){
@@ -453,7 +475,7 @@ function onDeviceReady() {
 
 		$.ajax({
             type: "GET",
-            url: 'http://10.0.0.80:3000/contacts.json',
+            url: 'http://staging.echoesapp.com/contacts.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
@@ -486,7 +508,7 @@ function onDeviceReady() {
 	$("#sync-button").click(function(){
 		$.ajax({
 			type: "POST",
-			url: 'http://10.0.0.80:3000/api/updatemail.json',
+			url: 'http://staging.echoesapp.com/api/updatemail.json',
 			data: {
             	auth_token: currentUser.token,
 				email_address: $('#email-input').val(),
@@ -711,7 +733,7 @@ function onDeviceReady() {
 	function recordAudio() {
 		now = new Date();
 		currentTimeStampString = "" + now.getFullYear() + "m" + now.getMonth() + "d" + now.getDate() + "h" + now.getHours() + "m" + now.getMinutes() + "s" + now.getSeconds();
-		fileName = "echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
+		fileName = "/sdcard/echoesapp/echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
 		
 		mediaRec = new Media(fileName, onSuccess, onError);
 	    
