@@ -16,7 +16,7 @@ mailbox['archive'] = { current: -1, messages: [] };
 mailbox['trash']   = { current: -1, messages: [] };
 
 var contacts = [], currentContact = -1;
-var mediaRec;
+var mediaRec, mediaState;
 var root, passwordSaved = false;
 
 document.addEventListener("deviceready", onDeviceReady, false);
@@ -61,7 +61,7 @@ function onDeviceReady() {
 
 
 	function authenticateUser() {
-		root.getFile("echoesapp.jpg",
+		root.getFile("echoesapp/echoesapp.jpg",
 			{ create: false },
 			function() { passwordSaved = true; },
 			function() { passwordSaved = false; }
@@ -80,7 +80,7 @@ function onDeviceReady() {
 
 
 	function loginUser() {
-		root.getFile("echoesapp.jpg",
+		root.getFile("echoesapp/echoesapp.jpg",
 			{
 				create: false,
 				exclusive: false
@@ -98,7 +98,9 @@ function onDeviceReady() {
 
 	function registerUser() {
 		currentUser.password = Math.random().toString(36).substr(2);
-
+		alert(root.fullPath);
+		root.getDirectory("echoesapp", {create: true, exclusive: false}, win, fail);
+		alert("Dupa get directory");
 		create_writer = function(fileEntry) {
 		  fileEntry.createWriter(write_file, onFileSystemError);
 		};
@@ -119,7 +121,7 @@ function onDeviceReady() {
 			},
 			success: function(response) {
 				if (response.success) {
-					root.getFile("echoesapp.jpg",
+					root.getFile("echoesapp/echoesapp.jpg",
 						{ create: true, exclusive: true },
 						create_writer, fail
 					);
@@ -214,7 +216,7 @@ function onDeviceReady() {
 						alert("Authentication error");
 				},
 				error: function(error) {
-					alert(error.statusText);
+					alert("Password reading" + error.statusText);
 				}
     		});
         };
@@ -273,8 +275,7 @@ function onDeviceReady() {
 
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
-			syncMail();
-			afterMenuSelect();	
+			syncMail('inbox');	
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
 			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
@@ -293,7 +294,7 @@ function onDeviceReady() {
 
 		if (currentScreen == 12){
 			window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
-			// uploadFile("/sdcard/echoesapp.jpg");
+			// uploadFile("root.fullPath + /echoesapp/echoesapp.jpg");
 		}
 
 		if (currentScreen == 22){
@@ -304,9 +305,22 @@ function onDeviceReady() {
 
 	function sendMail(){
 		$.ajax({
-
-		});
-	}
+      type: "POST",
+      url: 'http://localhost:3000/api/sendmail.json',
+      crossDomain: true,
+      dataType: 'json',
+      // data: { auth_token: currentUser.token, email: { to: , subject: , content: null, language: "en", cc: null, bcc: null, attach:  } },
+      success: function(data) {
+          if(data.success)
+              alert("send mail: " + data.folder);
+          else
+              alert("send mail: " + data.folder);
+      },
+      error: function(e) {
+        alert("foc in 3, 2... " + e.statusText);
+      }
+    });
+ 	}
 
 	function uploadWin(r){
 		alert("in uploadWin" + r.response)
@@ -352,19 +366,21 @@ function onDeviceReady() {
 		}
 	}
 
-	function syncMail(){
+	function syncMail(folder){
 	  $.ajax({
       type: "POST",
       url: 'http://staging.echoesapp.com/api/mailsync.json',
       crossDomain: true,
       dataType: 'json',
-      data: { auth_token: currentUser.token, folder: "inbox" },
+      data: { auth_token: currentUser.token, folder: folder },
       success: function(data) {
       	console.log("Stage: " + data.stage);
       },
       error: function(e) {
         alert("Error in sync: " + e.statusText);
       }
+    }).done(function(){
+    	refreshMessages(currentScreen);
     });
 	}
 
@@ -372,52 +388,53 @@ function onDeviceReady() {
 	// retrieve messages
 	function refreshMessages(folder){
 		window.plugins.tts.speak('refreshing messages');
-		syncMail();
-		$.ajax({
-            type: "GET",
-            url: 'http://staging.echoesapp.com/emails.json',
-            dataType: 'json',
-            data: {
-            	auth_token: currentUser.token
-            },
-            success: function(response) {
-              mailbox['inbox']   = { current: -1, messages: [] };
-            	mailbox['sent']    = { current: -1, messages: [] };
-            	mailbox['archive'] = { current: -1, messages: [] };
-            	mailbox['trash']   = { current: -1, messages: [] };
+		setTimeout(function(){
+			clearTimeout();
+			$.ajax({
+	            type: "GET",
+	            url: 'http://staging.echoesapp.com/emails.json',
+	            dataType: 'json',
+	            data: {
+	            	auth_token: currentUser.token
+	            },
+	            success: function(response) {
+	              mailbox['inbox']   = { current: -1, messages: [] };
+	            	mailbox['sent']    = { current: -1, messages: [] };
+	            	mailbox['archive'] = { current: -1, messages: [] };
+	            	mailbox['trash']   = { current: -1, messages: [] };
 
-	        		response.forEach(function(element, index, array) {
-	        				if(element.attachment != null){
-	        				 	downloadAttachment(element.attachment);
-	        				 }
-	            		mailbox[element['folder']].messages.push(element);
-            	});
+		        		response.forEach(function(element, index, array) {
+		        				// if(element.attachment != null){
+		        				//  	downloadAttachment(element.attachment);
+		        				//  }
+		            		mailbox[element['folder']].messages.push(element);
+	            	});
 
-        		if (mailbox['inbox'].messages.length > 0){
-        			mailbox['inbox'].current = 0;
-        		}
-        		if (mailbox['sent'].messages.length > 0){
-        			mailbox['sent'].current = 0;
-        		}
-        		if (mailbox['trash'].messages.length > 0){
-        			mailbox['trash'].current = 0;
-        		}
-        		if (mailbox['archive'].messages.length > 0){
-        			mailbox['archive'].current = 0;
-        		}
-        		        		
-        		afterMessageSelect();
-            },
-            error: function(error) {
-            	window.plugins.tts.speak('error: ' + error.statusText);
-            }
-        }).done(function(){
-					window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
-        });
+	        		if (mailbox['inbox'].messages.length > 0){
+	        			mailbox['inbox'].current = 0;
+	        		}
+	        		if (mailbox['sent'].messages.length > 0){
+	        			mailbox['sent'].current = 0;
+	        		}
+	        		if (mailbox['trash'].messages.length > 0){
+	        			mailbox['trash'].current = 0;
+	        		}
+	        		if (mailbox['archive'].messages.length > 0){
+	        			mailbox['archive'].current = 0;
+	        		}
+	        		        		
+	        		afterMessageSelect();
+	            },
+	            error: function(error) {
+	            	window.plugins.tts.speak('error: ' + error.statusText);
+	            }
+	        }).done(function(){
+						window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
+	        })}, 1000);
 	}
 
 	function downloadAttachment(fileName){
-		var filePath = "/sdcard/echoesapp/" + fileName;
+		var filePath = root.fullPath + "/echoesapp/" + fileName;
 
 		create_writer = function(fileEntry) {
 
@@ -678,7 +695,7 @@ function onDeviceReady() {
 		if ($(target).attr("id") == 'help') {
 			readHelp(currentScreen);
     	} else {
-    		if([12,13,14,15].indexOf(currentScreen) > -1) refreshMessages(currentScreen);
+    		if([12,13,14,15].indexOf(currentScreen) > -1) syncMail(menus[currentScreen]);
     		if([0,1,2,3,4].indexOf(currentScreen) > -1) afterMenuSelect();
 		}
     }
@@ -714,6 +731,16 @@ function onDeviceReady() {
 	    		$('#page-23 p.contact-email').text(contacts[currentContact].email);
 	    		afterMenuSelect();
 	    	}
+
+	    	if(currentScreen == 11){
+	    		if(mediaState == 1)
+	    			stopRec();
+	    		else {
+	    			window.plugins.tts.speak("Start Recording");
+	    			recordAudio(); 
+	    		}
+	    	}
+
 	    	if(currentScreen == 10){
 	    		window.plugins.tts.stop(win, fail);
 	    		currentScreen = 11;
@@ -733,13 +760,13 @@ function onDeviceReady() {
 	function recordAudio() {
 		now = new Date();
 		currentTimeStampString = "" + now.getFullYear() + "m" + now.getMonth() + "d" + now.getDate() + "h" + now.getHours() + "m" + now.getMinutes() + "s" + now.getSeconds();
-		fileName = "/sdcard/echoesapp/echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
+		fileName = root.fullPath + "/echoesapp/echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
 		
 		mediaRec = new Media(fileName, onSuccess, onError);
 	    
 	    // Record audio begins here
 	    mediaRec.startRecord();
-		
+			mediaState = 1;
 	    // Stops recording after 30 sec (default if stopRec is not called)
 	    var recTime = 0;
 	    var recInterval = setInterval(function() {
@@ -752,6 +779,7 @@ function onDeviceReady() {
 	}
 
 	function stopRec(){
+		window.plugins.tts.speak("Stop Recording");
 		mediaRec.stopRecord();
 	}
 	     

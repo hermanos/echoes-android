@@ -91,9 +91,9 @@ function dump_pic(data) {
     document.getElementById("test_img").src = data;
 }
 
-function fail(msg) {
-    alert(msg);
-}
+// function fail(msg) {
+//     alert(msg);
+// }
 
 function show_pic() {
     navigator.camera.getPicture(dump_pic, fail, {

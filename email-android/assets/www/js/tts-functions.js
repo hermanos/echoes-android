@@ -9,7 +9,7 @@ function ChangeLanguageWin(result) {
 }
 
 function fail(result) {
-    alert("Error! Fail: " + result);
+    alert("Error! Fail: " + result.statusText);
 }
 function win(result) {
 }
