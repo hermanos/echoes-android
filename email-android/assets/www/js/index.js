@@ -7,7 +7,7 @@ var currentScreen = 0, menus = ['splash' ,'tutorial page 1' ,'tutorial page 2' ,
 
 //stage: 0=new, 1=tutorial, 2=added email, 3=sync'd
 var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '', uuid: '', password: '', username: '' };
-var currentFolder = '';
+var currentFolder = ''
 
 var mailbox = [];
 mailbox['inbox']   = { current: -1, messages: [] };
@@ -273,6 +273,9 @@ function onDeviceReady() {
 
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
+			alert("inainte de syncajax ==" + currentUser.stage);
+			syncMail();
+			afterMenuSelect();	
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
 			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
@@ -287,6 +290,10 @@ function onDeviceReady() {
 			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text.' + currentUser.language).text());			
 		} else {
 			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
+		}
+
+		if (currentScreen == 12){
+			window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
 		}
 
 		if (currentScreen == 22){
@@ -314,6 +321,25 @@ function onDeviceReady() {
 		}
 	}
 
+	function syncMail(){
+		alert("In sync mail: " + currentUser.stage)
+	  $.ajax({
+      type: "POST",
+      url: 'http://localhost:3000/api/mailsync.json',
+      crossDomain: true,
+      dataType: 'json',
+      data: { auth_token: currentUser.token, folder: "inbox" },
+      success: function(data) {
+         alert(data.stage);
+      },
+      error: function(e) {
+        alert("foc in 3, 2... " + e.statusText);
+      }
+    });
+		alert("Ies din syncMail: " + currentUser.stage)
+	}
+
+
 	// retrieve messages
 	function refreshMessages(folder){
 		window.plugins.tts.speak('refreshing messages');
@@ -326,7 +352,7 @@ function onDeviceReady() {
             	auth_token: currentUser.token
             },
             success: function(response) {
-               	mailbox['inbox']   = { current: -1, messages: [] };
+              mailbox['inbox']   = { current: -1, messages: [] };
             	mailbox['sent']    = { current: -1, messages: [] };
             	mailbox['archive'] = { current: -1, messages: [] };
             	mailbox['trash']   = { current: -1, messages: [] };
@@ -353,6 +379,8 @@ function onDeviceReady() {
             error: function(error) {
             	window.plugins.tts.speak('error: ' + error.statusText);
             }
+        }).done(function(){
+					window.plugins.tts.speak(mailbox['inbox'].messages.length + 'messages');
         });
 	}
 
