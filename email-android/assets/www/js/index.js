@@ -15,6 +15,7 @@ mailbox['sent']    = { current: -1, messages: [] };
 mailbox['archive'] = { current: -1, messages: [] };
 mailbox['trash']   = { current: -1, messages: [] };
 
+var fileName = '';
 var contacts = [], currentContact = -1;
 var mediaRec, mediaState;
 var root, passwordSaved = false;
@@ -98,9 +99,9 @@ function onDeviceReady() {
 
 	function registerUser() {
 		currentUser.password = Math.random().toString(36).substr(2);
-		alert(root.fullPath);
+		console.log(root.fullPath);
 		root.getDirectory("echoesapp", {create: true, exclusive: false}, win, fail);
-		alert("Dupa get directory");
+		console.log("Dupa get directory");
 		create_writer = function(fileEntry) {
 		  fileEntry.createWriter(write_file, onFileSystemError);
 		};
@@ -145,10 +146,10 @@ function onDeviceReady() {
 					}
 				}
 				else
-					alert("Unable to run application.");
+					console.log("Unable to run application.");
 			},
 			error: function(error){
-				alert("Error: " + error.statusText);
+				console.log("Error: " + error.statusText);
 			}
 		});
 	}
@@ -213,10 +214,10 @@ function onDeviceReady() {
 						}
 					}
 					else
-						alert("Authentication error");
+						console.log("Authentication error");
 				},
 				error: function(error) {
-					alert("Password reading" + error.statusText);
+					console.log("Password reading" + error.statusText);
 				}
     		});
         };
@@ -225,7 +226,7 @@ function onDeviceReady() {
 	 }
 
 	function loadPasswordFail(e){
-	    alert("Load Password Fail. Error: " + e.target.error.code);
+	    console.log("Load Password Fail. Error: " + e.target.error.code);
 	}
 
 
@@ -282,9 +283,14 @@ function onDeviceReady() {
 			//			currentUser.stage = 3;
 		}
 
+		// if (currentScreen == 11){
+		// 	window.plugins.tts.speak("Message Sent");
+		// 	currentScreen = 12;
+		// }
+
 		$('.page').hide();
 		$('#page-' + currentScreen).show();
-		$('#status').html(currentScreen);
+		
 		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
 		if (currentUser.language != 'en' && $('#page-' + currentScreen + ' .read-text.' + currentUser.language).length > 0) {
 			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text.' + currentUser.language).text());			
@@ -301,33 +307,35 @@ function onDeviceReady() {
 			afterMessageSelect();
 			readCurrentMessage();
 		}
+
 	}
 
-	function sendMail(){
-		$.ajax({
-      type: "POST",
-      url: 'http://localhost:3000/api/sendmail.json',
-      crossDomain: true,
-      dataType: 'json',
-      // data: { auth_token: currentUser.token, email: { to: , subject: , content: null, language: "en", cc: null, bcc: null, attach:  } },
-      success: function(data) {
-          if(data.success)
-              alert("send mail: " + data.folder);
-          else
-              alert("send mail: " + data.folder);
-      },
-      error: function(e) {
-        alert("foc in 3, 2... " + e.statusText);
-      }
-    });
- 	}
+	// function sendMail(){
+	// 	$.ajax({
+ //      type: "POST",
+ //      url: 'http://localhost:3000/api/sendmail.json',
+ //      crossDomain: true,
+ //      dataType: 'json',
+ //      data: { auth_token: currentUser.token, email: { to: $('p.contact-email').text(), subject: "email from " + currentUser.username,
+ //      			  content: "Listen to the attachment.", language: "en", cc: null, bcc: null, attach: fileName } },
+ //      success: function(data) {
+ //          if(data.success)
+ //              alert("send mail: " + data.folder);
+ //          else
+ //              alert("send mail: " + data.folder);
+ //      },
+ //      error: function(e) {
+ //        alert("foc in 3, 2... " + e.statusText);
+ //      }
+ //    });
+ // 	}
 
 	function uploadWin(r){
-		alert("in uploadWin" + r.response)
+		console.log("in uploadWin" + r.response)
 	}
 
 	function uploadFail(error){
-		alert("Upload Failed: " + error.code)
+		console.log("Upload Failed: " + error.code)
 	}
 
 	function uploadFile(fileURI){
@@ -373,11 +381,12 @@ function onDeviceReady() {
       crossDomain: true,
       dataType: 'json',
       data: { auth_token: currentUser.token, folder: folder },
+      beforeSend: function(){ window.plugins.tts.speak("Refreshing Messages") },
       success: function(data) {
       	console.log("Stage: " + data.stage);
       },
       error: function(e) {
-        alert("Error in sync: " + e.statusText);
+        console.log("Error in sync: " + e.statusText);
       }
     }).done(function(){
     	refreshMessages(currentScreen);
@@ -387,7 +396,7 @@ function onDeviceReady() {
 
 	// retrieve messages
 	function refreshMessages(folder){
-		window.plugins.tts.speak('refreshing messages');
+		// window.plugins.tts.speak('refreshing messages');
 		setTimeout(function(){
 			clearTimeout();
 			$.ajax({
@@ -433,8 +442,8 @@ function onDeviceReady() {
 	        })}, 1000);
 	}
 
-	function downloadAttachment(fileName){
-		var filePath = root.fullPath + "/echoesapp/" + fileName;
+	function downloadAttachment(pFile){
+		var filePath = root.fullPath + "/echoesapp/" + pFile;
 
 		create_writer = function(fileEntry) {
 
@@ -541,24 +550,24 @@ function onDeviceReady() {
 				}
 			},
 			error: function (error) {
-				alert("Something went wrong" + error.statusText);
+				console.log("Something went wrong" + error.statusText);
 			}
 		});
 	});
 
-	$(".start-record").click(function(){
-		$(".start-record").hide();
-		$(".stop-record").show();
-		$(".play-button").hide();
-		recordAudio();
-	});
+	// $(".start-record").click(function(){
+	// 	$(".start-record").hide();
+	// 	$(".stop-record").show();
+	// 	$(".play-button").hide();
+	// 	recordAudio();
+	// });
 
-	$(".record-button").click(function(){
-		$(".stop-record").hide();
-		stopRec();
-		$(".play-button").show();
-		$(".start-record").show();
-	});
+	// $(".record-button").click(function(){
+	// 	$(".stop-record").hide();
+	// 	stopRec();
+	// 	$(".play-button").show();
+	// 	$(".start-record").show();
+	// });
 
 	$(".play-button").click(function(){
 		playAudio();
@@ -574,7 +583,7 @@ function onDeviceReady() {
 	}
 
 	function onFileSystemError(error){
-		alert("init: FileSystemError: " + error);
+		console.log("init: FileSystemError: " + error);
 	}
 
 
@@ -595,6 +604,7 @@ function onDeviceReady() {
 		}
 
 		if (direction == 'down'){
+			if(currentScreen == 11) window.plugins.tts.speak("Message Sent");
 			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
 				mailbox['inbox'].current += 1;
 				window.plugins.tts.stop(win, fail);
@@ -736,8 +746,7 @@ function onDeviceReady() {
 	    		if(mediaState == 1)
 	    			stopRec();
 	    		else {
-	    			window.plugins.tts.speak("Start Recording");
-	    			recordAudio(); 
+	    			window.plugins.tts.speak("Start Recording", recordAudio()); 
 	    		}
 	    	}
 
@@ -755,7 +764,6 @@ function onDeviceReady() {
 	
 	
 	// AUDIO COMPOSE CALLBACKS
-	var fileName = '';
 
 	function recordAudio() {
 		now = new Date();
@@ -825,7 +833,7 @@ function onDeviceReady() {
 
 	// onError Callback 
 	function onError(error) {
-	    alert('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
+	    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
 	}
 
 }
