@@ -100,7 +100,7 @@ function onDeviceReady() {
 	function registerUser() {
 		currentUser.password = Math.random().toString(36).substr(2);
 		console.log(root.fullPath);
-		root.getDirectory("echoesapp", {create: true, exclusive: false}, win, fail);
+		root.getDirectory("echoesapp", {create: true, exclusive: true}, win, fail);
 		console.log("Dupa get directory");
 		create_writer = function(fileEntry) {
 		  fileEntry.createWriter(write_file, onFileSystemError);
@@ -111,7 +111,7 @@ function onDeviceReady() {
 
 		$.ajax({
 			type: "POST",
-			url: 'http://staging.echoesapp.com/api/signup.json',
+			url: 'http://192.168.1.127:3000/api/signup.json',
 			dataType: 'json',
 			data: {
 				user: {
@@ -184,7 +184,7 @@ function onDeviceReady() {
             // login
     		$.ajax({
     			type: "POST",
-    			url: 'http://staging.echoesapp.com/api/signin.json',
+    			url: 'http://192.168.1.127:3000/api/signin.json',
     			dataType: 'json',
     			data: {
 					user: {
@@ -310,47 +310,45 @@ function onDeviceReady() {
 
 	}
 
-	// function sendMail(){
-	// 	$.ajax({
- //      type: "POST",
- //      url: 'http://localhost:3000/api/sendmail.json',
- //      crossDomain: true,
- //      dataType: 'json',
- //      data: { auth_token: currentUser.token, email: { to: $('p.contact-email').text(), subject: "email from " + currentUser.username,
- //      			  content: "Listen to the attachment.", language: "en", cc: null, bcc: null, attach: fileName } },
- //      success: function(data) {
- //          if(data.success)
- //              alert("send mail: " + data.folder);
- //          else
- //              alert("send mail: " + data.folder);
- //      },
- //      error: function(e) {
- //        alert("foc in 3, 2... " + e.statusText);
- //      }
- //    });
- // 	}
+	function sendMail(){
+		$.ajax({
+      type: "POST",
+      url: 'http://192.168.1.127:3000/api/sendmail.json',
+      crossDomain: true,
+      dataType: 'json',
+      data: { auth_token: currentUser.token, email: { to: $('p.contact-email').text(), subject: "email from " + currentUser.username,
+      			  content: "Listen to the attachment.", language: "en", cc: null, bcc: null, attach: fileName.substr(fileName.lastIndexOf('/') + 1) } },
+      success: function(data) {
+          if(data.success)
+              alert("send mail: " + data.folder);
+          else
+              alert("send mail: " + data.folder);
+      },
+      error: function(e) {
+        alert("foc in 3, 2... " + e.statusText);
+      }
+    });
+ 	}
 
 	function uploadWin(r){
-		console.log("in uploadWin" + r.response)
+		sendMail();
+		console.log("in uploadWin" + r.response);
 	}
 
 	function uploadFail(error){
-		console.log("Upload Failed: " + error.code)
+		console.log("Upload Failed: " + error.code);
 	}
 
 	function uploadFile(fileURI){
-	
+		alert(fileURI);
 		var options = new FileUploadOptions();
 		options.fileKey = "file";
 		options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
-		options.mimeType = "text/plain";
-
-		var params = {};
-		params.value1 = "upload";
-		params.value2 = "file";
-
-		options.params = params;
-		var uri = encodeURI("http://staging.echoesapp.com/api/upload.json?auth_token=" + currentUser.token);
+		options.mimeType = "audio/mp3";
+		alert(options.fileName);
+		options.chunckedMode = false;
+		
+		var uri = encodeURI("http://192.168.1.127:3000/api/upload.json?auth_token=" + currentUser.token);
 		var ft = new FileTransfer();
 		ft.upload(fileURI, uri, uploadWin, uploadFail, options);
 	}
@@ -377,7 +375,7 @@ function onDeviceReady() {
 	function syncMail(folder){
 	  $.ajax({
       type: "POST",
-      url: 'http://staging.echoesapp.com/api/mailsync.json',
+      url: 'http://192.168.1.127:3000/api/mailsync.json',
       crossDomain: true,
       dataType: 'json',
       data: { auth_token: currentUser.token, folder: folder },
@@ -401,7 +399,7 @@ function onDeviceReady() {
 			clearTimeout();
 			$.ajax({
 	            type: "GET",
-	            url: 'http://staging.echoesapp.com/emails.json',
+	            url: 'http://192.168.1.127:3000/emails.json',
 	            dataType: 'json',
 	            data: {
 	            	auth_token: currentUser.token
@@ -413,9 +411,9 @@ function onDeviceReady() {
 	            	mailbox['trash']   = { current: -1, messages: [] };
 
 		        		response.forEach(function(element, index, array) {
-		        				// if(element.attachment != null){
-		        				//  	downloadAttachment(element.attachment);
-		        				//  }
+		        				if(element.attachment != null){
+		        				 	downloadAttachment(element.attachment);
+		        				 }
 		            		mailbox[element['folder']].messages.push(element);
 	            	});
 
@@ -452,30 +450,80 @@ function onDeviceReady() {
 		write_file = function(writer) {
 			writer.write(currentUser.password);
 		};
-		root.getFile(filePath,
+		root.getFile("/echoesapp/" + pFile,
 				{ create: true, exclusive: true },
 				create_writer, fail
 				);
 
 		var fileTransfer = new FileTransfer();
-		var uri = encodeURI("http://staging.echoesapp.com/api/download.json?auth_token=" + currentUser.token + "&filename=" + fileName);
+		var uri = encodeURI("http://192.168.1.127:3000/api/download.json?auth_token=" + currentUser.token + "&filename=" + pFile);
 
 		fileTransfer.download(uri, filePath, uploadWin, uploadFail);
+	}
+
+	function speakMessage(mail){
+		window.plugins.tts.speak("From:" + mail.from);
+		window.plugins.tts.speak("Subject:" + mail.subject);
+		window.plugins.tts.speak("Content:" + mail.content);
+	}
+
+	function playAttachment(attachment){
+		alert(root.fullPath + attachment)
+		var my_media = null;
+		var mediaTimer = null;
+	    
+		if (my_media == null) {
+      // Creates Media object from srcm
+      my_media = new Media(root.fullPath + "/echoesapp/" + attachment, onSuccess, onError);
+    } // else play current audio
+	    	
+		// Play audio
+		my_media.play();
+
+ 		var playTime
+	    // Update my_media position every second
+    if (mediaTimer == null) {
+	    mediaTimer = setInterval(function() {
+	        // get my_media position
+	        my_media.getCurrentPosition(
+	            // success callback
+	            function(position) {
+	                if (position > -1) {
+	                    setAudioPosition((position) + " sec");
+	                }
+	            },
+	            // error callback
+	            function(e) {
+	                console.log("Error getting pos=" + e);
+	                setAudioPosition("Error: " + e);
+	            }
+	        );
+	        playTime = playTime + 1;
+	        if (playTime >=30 ) {
+	        	clearInterval(mediaTimer);
+	        	my_media.stop();
+	        }
+	    }, 1000);
+    }
 	}
 
 	function readCurrentMessage(){
 		if ([12].indexOf(currentFolder) > -1 && mailbox['inbox'].current >= 0) {
 			inbox_email = mailbox['inbox'].messages[mailbox['inbox'].current];
-			window.plugins.tts.speak("From:" + inbox_email.from);
-			window.plugins.tts.speak("Subject:" + inbox_email.subject);
-			window.plugins.tts.speak("Content:" + inbox_email.content);
+			if(inbox_email.attachment != null){
+				playAttachment(inbox_email.attachment);
+			}	else {
+				speakMessage(inbox_email);
+			}
 		}
 
 		if ([13].indexOf(currentFolder) > -1 && mailbox['sent'].current >= 0) {
 			sent_email = mailbox['sent'].messages[mailbox['sent'].current];
-			window.plugins.tts.speak("To:" + sent_email.to);
-			window.plugins.tts.speak("Subject:" + sent_email.subject);
-			window.plugins.tts.speak("Content:" + sent_email.content);
+			if(inbox_email.attachment != null){
+				playAttachment(sent_email.attachment);
+			}	else {
+				speakMessage(sent_email);
+			}
 		}
 
 		if ([14].indexOf(currentFolder) > -1 && mailbox['trash'].current >= 0) {
@@ -501,7 +549,7 @@ function onDeviceReady() {
 
 		$.ajax({
             type: "GET",
-            url: 'http://staging.echoesapp.com/contacts.json',
+            url: 'http://192.168.1.127:3000/contacts.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
@@ -534,11 +582,11 @@ function onDeviceReady() {
 	$("#sync-button").click(function(){
 		$.ajax({
 			type: "POST",
-			url: 'http://staging.echoesapp.com/api/updatemail.json',
+			url: 'http://192.168.1.127:3000/api/updatemail.json',
 			data: {
             	auth_token: currentUser.token,
-				email_address: $('#email-input').val(),
-				email_password: $('#password-input').val()
+							email_address: $('#email-input').val(),
+							email_password: $('#password-input').val()
 				},
 			dataType: 'json',
 			success: function (response) {
@@ -604,7 +652,7 @@ function onDeviceReady() {
 		}
 
 		if (direction == 'down'){
-			if(currentScreen == 11) window.plugins.tts.speak("Message Sent");
+			if(currentScreen == 11) uploadFile(fileName);
 			if ([12].indexOf(currentScreen) > -1 && mailbox['inbox'].current >= 0){
 				mailbox['inbox'].current += 1;
 				window.plugins.tts.stop(win, fail);
