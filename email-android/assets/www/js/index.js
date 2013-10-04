@@ -111,7 +111,7 @@ function onDeviceReady() {
 
 		$.ajax({
 			type: "POST",
-			url: 'http://192.168.1.127:3000/api/signup.json',
+			url: 'http://staging.echoesapp.com/api/signup.json',
 			dataType: 'json',
 			data: {
 				user: {
@@ -184,7 +184,7 @@ function onDeviceReady() {
             // login
     		$.ajax({
     			type: "POST",
-    			url: 'http://192.168.1.127:3000/api/signin.json',
+    			url: 'http://staging.echoesapp.com/api/signin.json',
     			dataType: 'json',
     			data: {
 					user: {
@@ -313,7 +313,7 @@ function onDeviceReady() {
 	function sendMail(){
 		$.ajax({
       type: "POST",
-      url: 'http://192.168.1.127:3000/api/sendmail.json',
+      url: 'http://staging.echoesapp.com/api/sendmail.json',
       crossDomain: true,
       dataType: 'json',
       data: { auth_token: currentUser.token, email: { to: $('p.contact-email').text(), subject: "email from " + currentUser.username,
@@ -348,7 +348,7 @@ function onDeviceReady() {
 		alert(options.fileName);
 		options.chunckedMode = false;
 		
-		var uri = encodeURI("http://192.168.1.127:3000/api/upload.json?auth_token=" + currentUser.token);
+		var uri = encodeURI("http://staging.echoesapp.com/api/upload.json?auth_token=" + currentUser.token);
 		var ft = new FileTransfer();
 		ft.upload(fileURI, uri, uploadWin, uploadFail, options);
 	}
@@ -375,7 +375,7 @@ function onDeviceReady() {
 	function syncMail(folder){
 	  $.ajax({
       type: "POST",
-      url: 'http://192.168.1.127:3000/api/mailsync.json',
+      url: 'http://staging.echoesapp.com/api/mailsync.json',
       crossDomain: true,
       dataType: 'json',
       data: { auth_token: currentUser.token, folder: folder },
@@ -399,7 +399,7 @@ function onDeviceReady() {
 			clearTimeout();
 			$.ajax({
 	            type: "GET",
-	            url: 'http://192.168.1.127:3000/emails.json',
+	            url: 'http://staging.echoesapp.com/emails.json',
 	            dataType: 'json',
 	            data: {
 	            	auth_token: currentUser.token
@@ -456,7 +456,7 @@ function onDeviceReady() {
 				);
 
 		var fileTransfer = new FileTransfer();
-		var uri = encodeURI("http://192.168.1.127:3000/api/download.json?auth_token=" + currentUser.token + "&filename=" + pFile);
+		var uri = encodeURI("http://staging.echoesapp.com/api/download.json?auth_token=" + currentUser.token + "&filename=" + pFile);
 
 		fileTransfer.download(uri, filePath, uploadWin, uploadFail);
 	}
@@ -549,7 +549,7 @@ function onDeviceReady() {
 
 		$.ajax({
             type: "GET",
-            url: 'http://192.168.1.127:3000/contacts.json',
+            url: 'http://staging.echoesapp.com/contacts.json',
             dataType: 'json',
             data: {
             	auth_token: currentUser.token
@@ -582,7 +582,7 @@ function onDeviceReady() {
 	$("#sync-button").click(function(){
 		$.ajax({
 			type: "POST",
-			url: 'http://192.168.1.127:3000/api/updatemail.json',
+			url: 'http://staging.echoesapp.com/api/updatemail.json',
 			data: {
             	auth_token: currentUser.token,
 							email_address: $('#email-input').val(),
