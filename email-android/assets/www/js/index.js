@@ -10,7 +10,12 @@ var currentUser = { id: 0, name: '', language: 'en', stage: 0, token: '', uuid: 
 var currentFolder = ''
 
 var mailbox = [];
-mailbox['inbox']   = { current: -1, messages: [] };
+
+mailbox['inbox'] = {
+  current: -1,
+  messages: []
+};
+
 mailbox['sent']    = { current: -1, messages: [] };
 mailbox['archive'] = { current: -1, messages: [] };
 mailbox['trash']   = { current: -1, messages: [] };
@@ -39,18 +44,10 @@ function onDeviceReady() {
 
 	// gestures handlers
 	$("#events").swipe({
-	    swipe: function(event, direction, distance, duration, fingerCount){
-	    	swipeCustomCallback(event, direction, distance, duration, fingerCount);
-	    },
-	    longTap: function(event, target){
-	    	longTapCustomCallback(event, target);
-	    },
-	    doubleTap: function(event, target){
-	    	doubleTapCustomCallback(event, target);
-	    },
-	    tap: function(event, target){
-	    	tapCustomCallback(event, target);
-	    }
+	    swipe: swipeCustomCallback,
+	    longTap: longTapCustomCallback,
+	    doubleTap: doubleTapCustomCallback,
+	    tap: tapCustomCallback
 	});
 
 
@@ -128,7 +125,7 @@ function onDeviceReady() {
 					);
 					currentUser.token = response.data.auth_token;
 					currentUser.stage = response.data.stage;
-					
+
 					if (currentUser.stage == 1){
 						currentScreen = 4;
 						afterMenuSelect();
@@ -196,7 +193,7 @@ function onDeviceReady() {
 					if (response.success) {
 						currentUser.token = response.data.auth_token;
 						currentUser.stage = response.data.stage;
-						
+
 						if (currentUser.stage == 1){
 							currentScreen = 4;
 							afterMenuSelect();
@@ -276,7 +273,7 @@ function onDeviceReady() {
 
 		if (currentScreen == 5){
 			window.plugins.tts.speak('Synchronizing. Please wait!');
-			syncMail('inbox');	
+			syncMail('inbox');
 			// TODO: metoda de a trece spre inbox cand a terminat sincronizarea
 			// poate polling (setTimeout) getStage si daca e 3 atunci:
 			//			currentScreen = 12; // redirect to inbox
@@ -290,10 +287,10 @@ function onDeviceReady() {
 
 		$('.page').hide();
 		$('#page-' + currentScreen).show();
-		
+
 		$('#help').html($('#page-' + currentScreen + ' .page-title').html());
 		if (currentUser.language != 'en' && $('#page-' + currentScreen + ' .read-text.' + currentUser.language).length > 0) {
-			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text.' + currentUser.language).text());			
+			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text.' + currentUser.language).text());
 		} else {
 			window.plugins.tts.speak($('#page-' + currentScreen + ' .read-text').text());
 		}
@@ -339,7 +336,7 @@ function onDeviceReady() {
 	}
 
 	function uploadFile(fileURI){
-	
+
 		var options = new FileUploadOptions();
 		options.fileKey = "file";
 		options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
@@ -431,7 +428,7 @@ function onDeviceReady() {
 	        		if (mailbox['archive'].messages.length > 0){
 	        			mailbox['archive'].current = 0;
 	        		}
-	        		        		
+
 	        		afterMessageSelect();
 	            },
 	            error: function(error) {
@@ -746,7 +743,7 @@ function onDeviceReady() {
 	    		if(mediaState == 1)
 	    			stopRec();
 	    		else {
-	    			window.plugins.tts.speak("Start Recording", recordAudio()); 
+	    			window.plugins.tts.speak("Start Recording", recordAudio());
 	    		}
 	    	}
 
@@ -760,18 +757,18 @@ function onDeviceReady() {
 	}
 	// END GESTURES CALLBACKS
 
-	
-	
-	
+
+
+
 	// AUDIO COMPOSE CALLBACKS
 
 	function recordAudio() {
 		now = new Date();
 		currentTimeStampString = "" + now.getFullYear() + "m" + now.getMonth() + "d" + now.getDate() + "h" + now.getHours() + "m" + now.getMinutes() + "s" + now.getSeconds();
 		fileName = root.fullPath + "/echoesapp/echoes-" + currentTimeStampString + "-" + Math.floor(Math.random()*1001) + ".mp3";
-		
+
 		mediaRec = new Media(fileName, onSuccess, onError);
-	    
+
 	    // Record audio begins here
 	    mediaRec.startRecord();
 			mediaState = 1;
@@ -782,7 +779,7 @@ function onDeviceReady() {
 	        if (recTime >= 30) {
 	            clearInterval(recInterval);
 	            mediaRec.stopRecord();
-	        } 
+	        }
 	    }, 1000);
 	}
 
@@ -790,17 +787,17 @@ function onDeviceReady() {
 		window.plugins.tts.speak("Stop Recording");
 		mediaRec.stopRecord();
 	}
-	     
+
 	function playAudio(srcm) {
 		var srcm = fileName;
 		var my_media = null;
 		var mediaTimer = null;
-	    
+
 		if (my_media == null) {
 	        // Creates Media object from srcm
 	        my_media = new Media(srcm, onSuccess, onError);
 	    } // else play current audio
-	    	
+
 		// Play audio
 		my_media.play();
 
@@ -831,7 +828,7 @@ function onDeviceReady() {
 	    console.log("recordAudio():Audio Success");
 	}
 
-	// onError Callback 
+	// onError Callback
 	function onError(error) {
 	    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
 	}
